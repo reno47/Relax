@@ -9,7 +9,7 @@ dist-ssr
 *.local
 
 # Local calendar data (personal, recreated at runtime)
-data/
+/data/
 
 # Editor directories and files
 .vscode/*
