@@ -1,58 +1,97 @@
 import { useEffect, useRef, useState } from 'react'
 import { githubColumns, type LinkItem } from '../../data/links'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { hydrate, schedulePush, subscribe } from '../../lib/syncStore'
+import { AddItemForm, type NewItem } from './AddItemForm'
 import { Hero } from './Shared'
 
 const ORDER_KEY = 'dashboard.github.order'
-
-// Source of truth for item content (titles/descriptions) keyed by URL.
-const itemByUrl = new Map(githubColumns.flat().map((i) => [i.url, i]))
+const CUSTOM_KEY = 'dashboard.github.custom'
+const REMOVED_KEY = 'dashboard.github.removed'
 
 type Pos = { col: number; idx: number }
+type CustomItem = LinkItem & { col: number }
 
-// Build the initial layout: use the saved URL order if present, but always
-// pull item content from config, append any new repos, and drop removed ones.
-function buildInitial(): LinkItem[][] {
-  let saved: string[][] | null = null
+function readJSON<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(ORDER_KEY)
-    if (raw) saved = JSON.parse(raw)
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : fallback
   } catch {
-    saved = null
+    return fallback
   }
-  if (!saved || !Array.isArray(saved)) return githubColumns.map((c) => [...c])
+}
 
+function buildInitial(): LinkItem[][] {
+  const custom = readJSON<CustomItem[]>(CUSTOM_KEY, [])
+  const removed = new Set(readJSON<string[]>(REMOVED_KEY, []))
+  const registry = new Map<string, LinkItem>()
+  githubColumns.flat().forEach((i) => registry.set(i.url, i))
+  custom.forEach((c) => registry.set(c.url, { title: c.title, url: c.url, description: c.description }))
+
+  const saved = readJSON<string[][] | null>(ORDER_KEY, null)
   const used = new Set<string>()
-  const cols: LinkItem[][] = saved.map((col) =>
-    (Array.isArray(col) ? col : [])
-      .map((url) => itemByUrl.get(url))
-      .filter((i): i is LinkItem => Boolean(i))
-      .map((i) => {
-        used.add(i.url)
-        return i
-      }),
-  )
-  while (cols.length < githubColumns.length) cols.push([])
-  // Append any repos from config that weren't in the saved layout.
+  let cols: LinkItem[][]
+
+  if (saved && Array.isArray(saved)) {
+    cols = saved.map((col) =>
+      (Array.isArray(col) ? col : [])
+        .map((url) => registry.get(url))
+        .filter((i): i is LinkItem => Boolean(i))
+        .filter((i) => !removed.has(i.url))
+        .map((i) => {
+          used.add(i.url)
+          return i
+        }),
+    )
+    while (cols.length < githubColumns.length) cols.push([])
+  } else {
+    cols = githubColumns.map((c) => c.filter((i) => !removed.has(i.url)))
+    cols.flat().forEach((i) => used.add(i.url))
+  }
+
   githubColumns.forEach((col, ci) => {
     col.forEach((item) => {
-      if (!used.has(item.url)) {
+      if (!used.has(item.url) && !removed.has(item.url)) {
         cols[ci].push(item)
         used.add(item.url)
       }
     })
+  })
+  custom.forEach((c) => {
+    if (!used.has(c.url) && !removed.has(c.url)) {
+      const ci = Math.min(Math.max(c.col, 0), cols.length - 1)
+      cols[ci].push({ title: c.title, url: c.url, description: c.description })
+      used.add(c.url)
+    }
   })
   return cols
 }
 
 export default function GitHub() {
   const [columns, setColumns] = useState<LinkItem[][]>(buildInitial)
+  const [, setCustomItems] = useLocalStorage<CustomItem[]>(CUSTOM_KEY, [])
+  const [, setRemovedUrls] = useLocalStorage<string[]>(REMOVED_KEY, [])
   const [dragging, setDragging] = useState<Pos | null>(null)
   const [hint, setHint] = useState<Pos | null>(null)
+  const [addCol, setAddCol] = useState(0)
   const dragRef = useRef<Pos | null>(null)
 
   useEffect(() => {
     localStorage.setItem(ORDER_KEY, JSON.stringify(columns.map((c) => c.map((i) => i.url))))
+    schedulePush()
   }, [columns])
+
+  // Rebuild the layout when the server hydrates order / custom / removed keys.
+  useEffect(() => {
+    const apply = () => setColumns(buildInitial())
+    const unsubs = [
+      subscribe(ORDER_KEY, apply),
+      subscribe(CUSTOM_KEY, apply),
+      subscribe(REMOVED_KEY, apply),
+    ]
+    hydrate()
+    return () => unsubs.forEach((u) => u())
+  }, [])
 
   function move(src: Pos, destCol: number, destIdx: number) {
     setColumns((prev) => {
@@ -72,6 +111,22 @@ export default function GitHub() {
     dragRef.current = null
     setDragging(null)
     setHint(null)
+  }
+
+  function addItem(item: NewItem, col: number) {
+    const ci = Math.min(Math.max(col, 0), columns.length - 1)
+    setCustomItems((prev) => [...prev, { ...item, col: ci }])
+    setColumns((prev) => {
+      const next = prev.map((c) => [...c])
+      next[ci] = [...next[ci], { title: item.title, url: item.url, description: item.description }]
+      return next
+    })
+  }
+
+  function removeItem(url: string) {
+    setRemovedUrls((prev) => (prev.includes(url) ? prev : [...prev, url]))
+    setCustomItems((prev) => prev.filter((c) => c.url !== url))
+    setColumns((prev) => prev.map((c) => c.filter((i) => i.url !== url)))
   }
 
   return (
@@ -107,7 +162,9 @@ export default function GitHub() {
                     key={item.url}
                     className={`dnd-card ${isDragging ? 'dragging' : ''} ${showHint ? 'drop-before' : ''}`}
                     draggable
-                    onDragStart={() => {
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move'
+                      e.dataTransfer.setData('text/plain', `${ci}:${ii}`)
                       dragRef.current = { col: ci, idx: ii }
                       setDragging({ col: ci, idx: ii })
                     }}
@@ -119,6 +176,7 @@ export default function GitHub() {
                     onDragOver={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
+                      e.dataTransfer.dropEffect = 'move'
                       setHint({ col: ci, idx: ii })
                     }}
                     onDrop={(e) => {
@@ -128,6 +186,15 @@ export default function GitHub() {
                     }}
                   >
                     <span className="drag-handle" aria-hidden="true">⋮⋮</span>
+                    <button
+                      type="button"
+                      className="dnd-remove"
+                      title="Remove"
+                      aria-label={`Remove ${item.title}`}
+                      onClick={() => removeItem(item.url)}
+                    >
+                      ×
+                    </button>
                     <a
                       className="link-card dnd-link"
                       href={item.url}
@@ -141,9 +208,39 @@ export default function GitHub() {
                   </div>
                 )
               })}
+
+              {/* Trailing drop zone — lets you drop at the end of any column. */}
+              <div
+                className={`column-dropzone ${hint?.col === ci && hint.idx === column.length ? 'active' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.dataTransfer.dropEffect = 'move'
+                  setHint({ col: ci, idx: column.length })
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  onDrop(ci, column.length)
+                }}
+              />
             </div>
           ))}
         </div>
+        <AddItemForm
+          label="+ Add repo / link"
+          onAdd={(item) => addItem(item, addCol)}
+          extra={
+            <label className="add-col-select">
+              Column
+              <select value={addCol} onChange={(e) => setAddCol(Number(e.target.value))}>
+                {columns.map((_, ci) => (
+                  <option key={ci} value={ci}>
+                    {ci + 1}
+                  </option>
+                ))}
+              </select>
+            </label>
+          }
+        />
       </div>
     </section>
   )

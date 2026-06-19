@@ -4,12 +4,11 @@ import './sections.css'
 export function Hero({
   icon,
   title,
-  subtitle,
   accent,
 }: {
   icon: string
   title: React.ReactNode
-  subtitle: string
+  subtitle?: string
   accent: string
 }) {
   return (
@@ -17,7 +16,6 @@ export function Hero({
       <span className="hero-icon">{icon}</span>
       <div className="hero-text">
         <h1>{title}</h1>
-        <p>{subtitle}</p>
       </div>
     </div>
   )
@@ -57,5 +55,25 @@ export function LinkRow({ item }: { item: LinkItem }) {
       {isPlaceholder(item.url) && <span className="placeholder-tag">set link</span>}
       {item.description && <span className="row-desc">{item.description}</span>}
     </a>
+  )
+}
+
+// A card with a delete (×) button — used for user-added items.
+export function RemovableCard({ item, onRemove }: { item: LinkItem; onRemove: () => void }) {
+  return (
+    <div className="card-wrap">
+      <button className="card-remove" onClick={onRemove} title="Remove" aria-label="Remove item">
+        ×
+      </button>
+      <a
+        className="link-card"
+        href={item.url}
+        target={isPlaceholder(item.url) ? undefined : '_blank'}
+        rel="noreferrer"
+      >
+        <div className="card-title">{item.title}</div>
+        {item.description && <div className="card-desc">{item.description}</div>}
+      </a>
+    </div>
   )
 }

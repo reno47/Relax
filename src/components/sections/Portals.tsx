@@ -1,7 +1,23 @@
-import { portalLinks } from '../../data/links'
-import { Hero, LinkCard } from './Shared'
+import { portalLinks, type LinkItem } from '../../data/links'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { AddItemForm } from './AddItemForm'
+import { Hero, RemovableCard } from './Shared'
+
+function readOld(key: string): LinkItem[] {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as LinkItem[]) : []
+  } catch {
+    return []
+  }
+}
 
 export default function Portals() {
+  const [items, setItems] = useLocalStorage<LinkItem[]>('dashboard.portals.items', [
+    ...portalLinks,
+    ...readOld('dashboard.portals.custom'),
+  ])
+
   return (
     <section className="section" style={{ ['--section-accent' as string]: 'var(--accent-portals)' }}>
       <Hero
@@ -14,10 +30,15 @@ export default function Portals() {
       <div className="group">
         <h2 className="group-title">Portals</h2>
         <div className="card-grid">
-          {portalLinks.map((item, i) => (
-            <LinkCard key={i} item={item} />
+          {items.map((item, i) => (
+            <RemovableCard
+              key={`${item.url}-${i}`}
+              item={item}
+              onRemove={() => setItems(items.filter((_, idx) => idx !== i))}
+            />
           ))}
         </div>
+        <AddItemForm label="+ Add portal" onAdd={(item) => setItems([...items, item])} />
       </div>
     </section>
   )

@@ -11,6 +11,11 @@ dist-ssr
 # Local calendar data (personal, recreated at runtime)
 /data/
 
+# TypeScript build artifacts
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

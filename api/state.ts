@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-// Persists the calendar to Vercel KV (Upstash Redis) when configured.
-// If KV env vars are not set, the endpoint degrades gracefully and the
-// frontend keeps using localStorage (data still survives a refresh per-browser).
-const KEY = 'calendar:data'
+// Persists all `dashboard.*` UI state (TFS/GitHub/Infra/Portals customisations,
+// ordering and deletions) to Vercel KV when configured. If KV env vars are not
+// set, the endpoint degrades gracefully and the frontend keeps using
+// localStorage (data still survives a refresh per-browser).
+const KEY = 'dashboard:state'
 
 async function getKv() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
@@ -18,17 +19,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'GET') {
     if (!kv) {
-      res.status(200).json({ categories: null, marks: null })
+      res.status(200).json({})
       return
     }
-    const data = (await kv.get(KEY)) ?? { categories: null, marks: null }
+    const data = (await kv.get(KEY)) ?? {}
     res.status(200).json(data)
     return
   }
 
   if (req.method === 'POST') {
     if (!kv) {
-      // No store configured — tell the client it wasn't persisted server-side.
       res.status(200).json({ ok: true, stored: false })
       return
     }

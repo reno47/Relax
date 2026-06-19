@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_FILE = path.resolve(__dirname, 'data', 'calendar.json')
+const STATE_FILE = path.resolve(__dirname, 'data', 'state.json')
 
 function readData(): string {
   try {
@@ -20,14 +21,30 @@ function writeData(body: string): void {
   fs.writeFileSync(DATA_FILE, body, 'utf-8')
 }
 
-// Persists the calendar to a JSON file on disk so the data survives
-// across browsers, profiles, incognito, cleared site data and port changes.
-function calendarApiPlugin(): Plugin {
-  const attach = (server: ViteDevServer | PreviewServer) => {
-    server.middlewares.use('/api/calendar', (req, res) => {
+function readState(): string {
+  try {
+    return fs.readFileSync(STATE_FILE, 'utf-8')
+  } catch {
+    return '{}'
+  }
+}
+
+function writeState(body: string): void {
+  fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true })
+  fs.writeFileSync(STATE_FILE, body, 'utf-8')
+}
+
+// Generic JSON file API used by both the calendar and the dashboard state.
+function jsonFileApi(
+  route: string,
+  read: () => string,
+  write: (body: string) => void,
+) {
+  return (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use(route, (req, res) => {
       if (req.method === 'GET') {
         res.setHeader('Content-Type', 'application/json')
-        res.end(readData())
+        res.end(read())
         return
       }
       if (req.method === 'POST') {
@@ -36,7 +53,7 @@ function calendarApiPlugin(): Plugin {
         req.on('end', () => {
           try {
             JSON.parse(body) // validate
-            writeData(body)
+            write(body)
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
             res.end('{"ok":true}')
@@ -51,8 +68,20 @@ function calendarApiPlugin(): Plugin {
       res.end()
     })
   }
+}
+
+// Persists the calendar and dashboard state to JSON files on disk so the data
+// survives across browsers, profiles, incognito, cleared site data and port
+// changes during local development.
+function dashboardApiPlugin(): Plugin {
+  const attachCalendar = jsonFileApi('/api/calendar', readData, writeData)
+  const attachState = jsonFileApi('/api/state', readState, writeState)
+  const attach = (server: ViteDevServer | PreviewServer) => {
+    attachCalendar(server)
+    attachState(server)
+  }
   return {
-    name: 'calendar-api',
+    name: 'dashboard-api',
     configureServer: attach,
     configurePreviewServer: attach,
   }
@@ -60,5 +89,5 @@ function calendarApiPlugin(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), calendarApiPlugin()],
+  plugins: [react(), dashboardApiPlugin()],
 })
