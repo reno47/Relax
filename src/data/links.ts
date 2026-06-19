@@ -47,6 +47,7 @@ export const githubColumns: LinkItem[][] = [
   [
     { title: 'AWS-Dev', url: 'https://github.com/philips-internal/pics-aws-dev', description: 'pics-aws-dev' },
     { title: 'AWS-Prod', url: 'https://github.com/philips-internal/pics-aws-pre-production', description: 'pics-aws-pre-production' },
+    { title: 'AWS-Demo', url: 'https://github.com/philips-internal/pics-demo', description: 'pics-demo' },
   ],
   // Column 3
   [
@@ -54,13 +55,17 @@ export const githubColumns: LinkItem[][] = [
     { title: 'Reporting-Kustomize', url: 'https://github.com/philips-internal/pics-reporting-kustomize', description: 'pics-reporting-kustomize' },
     { title: 'Reporting-Infra', url: 'https://github.com/philips-internal/pics-reporting-infra', description: 'pics-reporting-infra' },
     { title: 'Build-Base-Images', url: 'https://github.com/philips-internal/build-base-images', description: 'build-base-images' },
+    { title: 'KCL-Modules', url: 'https://github.com/philips-internal/pics-kcl-modules', description: 'pics-kcl-modules' },
+    { title: 'Workflows', url: 'https://github.com/philips-internal/pics-workflows', description: 'pics-workflows' },
   ],
   // Column 4
   [
     { title: 'CDS-Service-Provider', url: 'https://github.com/philips-internal/cds-service-provider', description: 'cds-service-provider' },
     { title: 'CQL-Execution-Service', url: 'https://github.com/philips-internal/cql-execution-service', description: 'cql-execution-service' },
+    { title: 'GitHub-Automation', url: 'https://github.com/philips-internal/pics-github-automation', description: 'pics-github-automation' },
     { title: 'PICS-User-Preference-Service', url: 'https://github.com/philips-internal/pics-user-preference-service', description: 'pics-user-preference-service' },
     { title: 'PICS-Configuration-Service', url: 'https://github.com/philips-internal/pics-configuration-service', description: 'pics-configuration-service' },
+    { title: 'Skills', url: 'https://github.com/philips-internal/pics-skills', description: 'pics-skills' },
     { title: 'PICS-Spartans-Playground', url: 'https://github.com/philips-internal/pics-spartans-playground', description: 'pics-spartans-playground' },
   ],
 ]
