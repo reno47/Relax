@@ -1,4 +1,4 @@
-import { githubLinks } from '../../data/links'
+import { githubColumns } from '../../data/links'
 import { Hero, LinkCard } from './Shared'
 
 export default function GitHub() {
@@ -13,9 +13,13 @@ export default function GitHub() {
 
       <div className="group">
         <h2 className="group-title">Repositories &amp; Links</h2>
-        <div className="card-grid">
-          {githubLinks.map((item, i) => (
-            <LinkCard key={i} item={item} />
+        <div className="github-columns">
+          {githubColumns.map((column, i) => (
+            <div className="github-column" key={i}>
+              {column.map((item) => (
+                <LinkCard key={item.title} item={item} />
+              ))}
+            </div>
           ))}
         </div>
       </div>

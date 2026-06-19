@@ -37,19 +37,32 @@ export const tfsLinks = {
 }
 
 // 2. GitHub ------------------------------------------------------------------
-export const githubLinks: LinkItem[] = [
-  { title: 'AWS-Dev', url: 'https://github.com/philips-internal/pics-aws-dev', description: 'pics-aws-dev' },
-  { title: 'AWS-Prod', url: 'https://github.com/philips-internal/pics-aws-pre-production', description: 'pics-aws-pre-production' },
-  { title: 'PICS', url: 'https://github.com/philips-internal/pics', description: 'pics' },
-  { title: 'Reporting-Kustomize', url: 'https://github.com/philips-internal/pics-reporting-kustomize', description: 'pics-reporting-kustomize' },
-  { title: 'Reporting-Infra', url: 'https://github.com/philips-internal/pics-reporting-infra', description: 'pics-reporting-infra' },
-  { title: 'Platform-Ref', url: 'https://github.com/philips-internal/pics-platform-ref', description: 'pics-platform-ref' },
-  { title: 'Build-Base-Images', url: 'https://github.com/philips-internal/build-base-images', description: 'build-base-images' },
-  { title: 'CDS-Service-Provider', url: 'https://github.com/philips-internal/cds-service-provider', description: 'cds-service-provider' },
-  { title: 'PICS-Configuration-Service', url: 'https://github.com/philips-internal/pics-configuration-service', description: 'pics-configuration-service' },
-  { title: 'PICS-User-Preference-Service', url: 'https://github.com/philips-internal/pics-user-preference-service', description: 'pics-user-preference-service' },
-  { title: 'CQL-Execution-Service', url: 'https://github.com/philips-internal/cql-execution-service', description: 'cql-execution-service' },
-  { title: 'PICS-Spartans-Playground', url: 'https://github.com/philips-internal/pics-spartans-playground', description: 'pics-spartans-playground' },
+// Organised into columns for display.
+export const githubColumns: LinkItem[][] = [
+  // Column 1
+  [
+    { title: 'PICS', url: 'https://github.com/philips-internal/pics', description: 'pics' },
+  ],
+  // Column 2
+  [
+    { title: 'AWS-Dev', url: 'https://github.com/philips-internal/pics-aws-dev', description: 'pics-aws-dev' },
+    { title: 'AWS-Prod', url: 'https://github.com/philips-internal/pics-aws-pre-production', description: 'pics-aws-pre-production' },
+  ],
+  // Column 3
+  [
+    { title: 'Platform-Ref', url: 'https://github.com/philips-internal/pics-platform-ref', description: 'pics-platform-ref' },
+    { title: 'Reporting-Kustomize', url: 'https://github.com/philips-internal/pics-reporting-kustomize', description: 'pics-reporting-kustomize' },
+    { title: 'Reporting-Infra', url: 'https://github.com/philips-internal/pics-reporting-infra', description: 'pics-reporting-infra' },
+    { title: 'Build-Base-Images', url: 'https://github.com/philips-internal/build-base-images', description: 'build-base-images' },
+  ],
+  // Column 4
+  [
+    { title: 'CDS-Service-Provider', url: 'https://github.com/philips-internal/cds-service-provider', description: 'cds-service-provider' },
+    { title: 'CQL-Execution-Service', url: 'https://github.com/philips-internal/cql-execution-service', description: 'cql-execution-service' },
+    { title: 'PICS-User-Preference-Service', url: 'https://github.com/philips-internal/pics-user-preference-service', description: 'pics-user-preference-service' },
+    { title: 'PICS-Configuration-Service', url: 'https://github.com/philips-internal/pics-configuration-service', description: 'pics-configuration-service' },
+    { title: 'PICS-Spartans-Playground', url: 'https://github.com/philips-internal/pics-spartans-playground', description: 'pics-spartans-playground' },
+  ],
 ]
 
 // 3. Infra -------------------------------------------------------------------

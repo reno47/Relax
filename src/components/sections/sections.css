@@ -87,6 +87,32 @@
   gap: 16px;
 }
 
+/* Column layout (GitHub) ---------------------------------------------- */
+.github-columns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.github-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .github-columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .github-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 .link-card {
   display: block;
   padding: 18px;
