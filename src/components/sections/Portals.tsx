@@ -1,4 +1,5 @@
 import { portalLinks, type LinkItem } from '../../data/links'
+import portalsIcon from '../../assets/icons/portals.svg'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AddItemForm } from './AddItemForm'
 import { Hero, RemovableCard } from './Shared'
@@ -21,7 +22,7 @@ export default function Portals() {
   return (
     <section className="section" style={{ ['--section-accent' as string]: 'var(--accent-portals)' }}>
       <Hero
-        icon="🔗"
+        icon={<img src={portalsIcon} alt="" className="hero-icon-img" aria-hidden="true" />}
         accent="var(--accent-portals)"
         title={<>Important Portals</>}
         subtitle="Frequently used company portals, all in one place."

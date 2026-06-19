@@ -1,4 +1,9 @@
 import './Navbar.css'
+import tfsIcon from '../assets/icons/tfs.svg'
+import githubIcon from '../assets/icons/github.svg'
+import infraIcon from '../assets/icons/infra.svg'
+import portalsIcon from '../assets/icons/portals.svg'
+import calendarIcon from '../assets/icons/calendar.svg'
 
 export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar'
 
@@ -10,19 +15,20 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'tfs', label: 'TFS', icon: '📋', accent: 'var(--accent-tfs)' },
-  { id: 'github', label: 'GitHub', icon: '🐙', accent: 'var(--accent-github)' },
-  { id: 'infra', label: 'Infra', icon: '☁️', accent: 'var(--accent-infra)' },
-  { id: 'portals', label: 'Important Portals', icon: '🔗', accent: 'var(--accent-portals)' },
-  { id: 'calendar', label: 'Calendar', icon: '🗓️', accent: 'var(--accent-calendar)' },
+  { id: 'tfs', label: 'TFS', icon: tfsIcon, accent: 'var(--accent-tfs)' },
+  { id: 'github', label: 'GitHub', icon: githubIcon, accent: 'var(--accent-github)' },
+  { id: 'infra', label: 'Infra', icon: infraIcon, accent: 'var(--accent-infra)' },
+  { id: 'portals', label: 'Important Portals', icon: portalsIcon, accent: 'var(--accent-portals)' },
+  { id: 'calendar', label: 'Calendar', icon: calendarIcon, accent: 'var(--accent-calendar)' },
 ]
 
 interface NavbarProps {
   active: SectionId
   onChange: (id: SectionId) => void
+  onLogout: () => void
 }
 
-export default function Navbar({ active, onChange }: NavbarProps) {
+export default function Navbar({ active, onChange, onLogout }: NavbarProps) {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -37,12 +43,17 @@ export default function Navbar({ active, onChange }: NavbarProps) {
               style={{ ['--item-accent' as string]: item.accent }}
               onClick={() => onChange(item.id)}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon">
+                <img src={item.icon} alt="" className="nav-icon-img" aria-hidden="true" />
+              </span>
               <span className="nav-label">{item.label}</span>
             </button>
           </li>
         ))}
       </ul>
+      <button className="logout-btn" onClick={onLogout}>
+        Logout
+      </button>
     </nav>
   )
 }

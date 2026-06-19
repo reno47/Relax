@@ -6,7 +6,7 @@ export function Hero({
   title,
   accent,
 }: {
-  icon: string
+  icon: React.ReactNode
   title: React.ReactNode
   subtitle?: string
   accent: string

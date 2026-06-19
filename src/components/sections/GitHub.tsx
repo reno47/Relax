@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { githubColumns, type LinkItem } from '../../data/links'
+import githubIcon from '../../assets/icons/github.svg'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { hydrate, schedulePush, subscribe } from '../../lib/syncStore'
 import { AddItemForm, type NewItem } from './AddItemForm'
@@ -132,7 +133,7 @@ export default function GitHub() {
   return (
     <section className="section" style={{ ['--section-accent' as string]: 'var(--accent-github)' }}>
       <Hero
-        icon="🐙"
+        icon={<img src={githubIcon} alt="" className="hero-icon-img" aria-hidden="true" />}
         accent="var(--accent-github)"
         title={<>GitHub</>}
         subtitle="Quick access to your repositories. Drag cards to reorder or move them between columns."

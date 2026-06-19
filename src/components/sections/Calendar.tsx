@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import calendarIcon from '../../assets/icons/calendar.svg'
 import './Calendar.css'
 
 // ---------------------------------------------------------------------------
@@ -241,7 +242,9 @@ export default function CalendarView() {
   return (
     <section className="section calendar-section">
       <div className="hero" style={{ ['--section-accent' as string]: 'var(--accent-calendar)' }}>
-        <span className="hero-icon">🗓️</span>
+        <span className="hero-icon">
+          <img src={calendarIcon} alt="" className="hero-icon-img" aria-hidden="true" />
+        </span>
         <div className="hero-text">
           <h1>Calendar</h1>
           <p>

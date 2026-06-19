@@ -1,4 +1,5 @@
 import { tfsLinks, type LinkItem } from '../../data/links'
+import tfsIcon from '../../assets/icons/tfs.svg'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AddItemForm } from './AddItemForm'
 import { Hero, RemovableCard } from './Shared'
@@ -25,7 +26,7 @@ export default function TFS() {
   return (
     <section className="section" style={{ ['--section-accent' as string]: 'var(--accent-tfs)' }}>
       <Hero
-        icon="📋"
+        icon={<img src={tfsIcon} alt="" className="hero-icon-img" aria-hidden="true" />}
         accent="var(--accent-tfs)"
         title={<>TFS</>}
         subtitle="Boards, backlog and the stories you are working on."

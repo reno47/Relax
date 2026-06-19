@@ -39,7 +39,17 @@
 }
 
 .hero-icon {
-  font-size: 2.4rem;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-icon-img {
+  width: 48px;
+  height: 48px;
+  display: block;
 }
 
 .hero-text h1 {

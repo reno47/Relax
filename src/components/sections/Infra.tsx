@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { infraLinks, type LinkItem } from '../../data/links'
+import infraIcon from '../../assets/icons/infra.svg'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AddItemForm } from './AddItemForm'
 import { Hero, RemovableCard } from './Shared'
@@ -54,7 +55,7 @@ export default function Infra() {
   return (
     <section className="section" style={{ ['--section-accent' as string]: 'var(--accent-infra)' }}>
       <Hero
-        icon="☁️"
+        icon={<img src={infraIcon} alt="" className="hero-icon-img" aria-hidden="true" />}
         accent="var(--accent-infra)"
         title={<>Infra</>}
         subtitle="AWS access, Argo CD and deployment environments. Add your own sections and links."
