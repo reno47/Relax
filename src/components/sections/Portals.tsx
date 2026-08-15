@@ -36,6 +36,7 @@ export default function Portals() {
               key={`${item.url}-${i}`}
               item={item}
               onRemove={() => setItems(items.filter((_, idx) => idx !== i))}
+              onEdit={(updated) => setItems(items.map((it, idx) => (idx === i ? updated : it)))}
             />
           ))}
         </div>

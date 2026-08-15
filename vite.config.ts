@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin, type ViteDevServer, type PreviewServer } from 'vite'
+import { defineConfig, loadEnv, type Plugin, type ViteDevServer, type PreviewServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -87,7 +87,50 @@ function dashboardApiPlugin(): Plugin {
   }
 }
 
+// Dev-time Azure DevOps work-item lookup, mirroring the /api/tfs serverless
+// function so it also works with `npm run dev` / `vite preview`.
+function tfsApiPlugin(env: Record<string, string>): Plugin {
+  const org = env.AZDO_ORG || 'ALMP-ORG-EP11'
+  const pat = env.AZDO_PAT
+  const attach = (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use('/api/tfs', async (req, res) => {
+      const send = (code: number, obj: unknown) => {
+        res.statusCode = code
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify(obj))
+      }
+      const id = (new URL(req.url ?? '', 'http://localhost').searchParams.get('id') ?? '').trim()
+      if (!pat) return send(501, { error: 'Lookup not configured — add AZDO_PAT to .env.' })
+      if (!/^\d+$/.test(id)) return send(400, { error: 'Provide a numeric work item ID.' })
+
+      const fields = 'System.Id,System.Title,System.IterationPath,System.WorkItemType,System.State'
+      const api = `https://dev.azure.com/${encodeURIComponent(org)}/_apis/wit/workitems/${id}?fields=${fields}&api-version=7.0`
+      const auth = Buffer.from(`:${pat}`).toString('base64')
+      try {
+        const r = await fetch(api, { headers: { Authorization: `Basic ${auth}` } })
+        if (!r.ok) return send(r.status, { error: `Azure DevOps returned ${r.status}.` })
+        const data = (await r.json()) as { id: number; fields?: Record<string, string> }
+        const f = data.fields ?? {}
+        return send(200, {
+          id: data.id,
+          title: f['System.Title'] ?? '',
+          iteration: f['System.IterationPath'] ?? '',
+          type: f['System.WorkItemType'] ?? '',
+          state: f['System.State'] ?? '',
+          url: `https://dev.azure.com/${org}/_workitems/edit/${data.id}`,
+        })
+      } catch {
+        return send(502, { error: 'Could not reach Azure DevOps.' })
+      }
+    })
+  }
+  return { name: 'tfs-api', configureServer: attach, configurePreviewServer: attach }
+}
+
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), dashboardApiPlugin()],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  return {
+    plugins: [react(), dashboardApiPlugin(), tfsApiPlugin(env)],
+  }
 })

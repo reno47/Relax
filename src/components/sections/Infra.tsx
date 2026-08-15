@@ -38,6 +38,16 @@ export default function Infra() {
     )
   }
 
+  function editItem(sectionId: string, index: number, updated: LinkItem) {
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? { ...s, items: s.items.map((it, i) => (i === index ? updated : it)) }
+          : s,
+      ),
+    )
+  }
+
   function addSection(e: React.FormEvent) {
     e.preventDefault()
     const title = newSectionTitle.trim()
@@ -81,6 +91,7 @@ export default function Infra() {
                 key={`${item.url}-${i}`}
                 item={item}
                 onRemove={() => removeItem(sec.id, i)}
+                onEdit={(updated) => editItem(sec.id, i, updated)}
               />
             ))}
           </div>

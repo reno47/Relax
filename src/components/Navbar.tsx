@@ -4,8 +4,9 @@ import githubIcon from '../assets/icons/github.svg'
 import infraIcon from '../assets/icons/infra.svg'
 import portalsIcon from '../assets/icons/portals.svg'
 import calendarIcon from '../assets/icons/calendar.svg'
+import notesIcon from '../assets/icons/notes.svg'
 
-export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar'
+export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar' | 'notes'
 
 interface NavItem {
   id: SectionId
@@ -20,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'infra', label: 'Infra', icon: infraIcon, accent: 'var(--accent-infra)' },
   { id: 'portals', label: 'Important Portals', icon: portalsIcon, accent: 'var(--accent-portals)' },
   { id: 'calendar', label: 'Calendar', icon: calendarIcon, accent: 'var(--accent-calendar)' },
+  { id: 'notes', label: 'Notes', icon: notesIcon, accent: 'var(--accent-notes)' },
 ]
 
 interface NavbarProps {

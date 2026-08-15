@@ -6,6 +6,7 @@ import GitHub from './components/sections/GitHub'
 import Infra from './components/sections/Infra'
 import Portals from './components/sections/Portals'
 import CalendarView from './components/sections/Calendar'
+import Notes from './components/sections/Notes'
 
 const SECTION_KEY = 'dashboard.activeSection'
 
@@ -56,6 +57,7 @@ export default function App() {
         {active === 'infra' && <Infra />}
         {active === 'portals' && <Portals />}
         {active === 'calendar' && <CalendarView />}
+        {active === 'notes' && <Notes />}
       </main>
     </div>
   )

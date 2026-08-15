@@ -28,6 +28,9 @@ const PRESET_COLORS = [
   '#ff5c8a', '#27d3c9', '#f7c948', '#8e9aff', '#9b9b9b',
 ]
 
+// Earliest year offered by the summary year filter.
+const SUMMARY_START_YEAR = 2026
+
 function loadJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)
@@ -73,6 +76,12 @@ export default function CalendarView() {
   // New-category form state
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState(PRESET_COLORS[4])
+
+  // Summary panel: count marks of a category, filtered by year (or all).
+  const [summaryCategory, setSummaryCategory] = useState<string>(
+    () => loadJSON(CATEGORIES_KEY, DEFAULT_CATEGORIES)[0]?.id ?? '',
+  )
+  const [summaryYear, setSummaryYear] = useState<string>(String(today.getFullYear()))
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -123,6 +132,29 @@ export default function CalendarView() {
     for (const c of categories) map[c.id] = c
     return map
   }, [categories])
+
+  // Year filter options: SUMMARY_START_YEAR .. currentYear + 1.
+  const summaryYears = useMemo(() => {
+    const end = today.getFullYear() + 1
+    const ys: number[] = []
+    for (let y = SUMMARY_START_YEAR; y <= end; y++) ys.push(y)
+    return ys
+  }, [today])
+
+  // Fall back to the first category if the selected one was deleted.
+  const activeSummaryCat = categories.some((c) => c.id === summaryCategory)
+    ? summaryCategory
+    : categories[0]?.id ?? ''
+
+  const summaryCount = useMemo(() => {
+    if (!activeSummaryCat) return 0
+    let n = 0
+    for (const [k, v] of Object.entries(marks)) {
+      if (v !== activeSummaryCat) continue
+      if (summaryYear === 'all' || k.startsWith(`${summaryYear}-`)) n += 1
+    }
+    return n
+  }, [marks, activeSummaryCat, summaryYear])
 
   // Build the grid of day cells (with leading blanks).
   const cells = useMemo(() => {
@@ -355,6 +387,47 @@ export default function CalendarView() {
 
         {/* ---------------- Main: month grid ---------------- */}
         <div className="cal-main">
+          <div className="cal-summary">
+            <div className="summary-controls">
+              <label className="summary-field">
+                <span>Category</span>
+                <select
+                  value={activeSummaryCat}
+                  onChange={(e) => setSummaryCategory(e.target.value)}
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="summary-field">
+                <span>Year</span>
+                <select value={summaryYear} onChange={(e) => setSummaryYear(e.target.value)}>
+                  {summaryYears.map((y) => (
+                    <option key={y} value={String(y)}>
+                      {y}
+                    </option>
+                  ))}
+                  <option value="all">All</option>
+                </select>
+              </label>
+            </div>
+            <div className="summary-result">
+              <span
+                className="summary-count"
+                style={{ color: categoryById[activeSummaryCat]?.color ?? 'var(--accent-calendar)' }}
+              >
+                {summaryCount}
+              </span>
+              <span className="summary-label">
+                {categoryById[activeSummaryCat]?.name ?? '—'} day{summaryCount === 1 ? '' : 's'}{' '}
+                {summaryYear === 'all' ? '(all time)' : `in ${summaryYear}`}
+              </span>
+            </div>
+          </div>
+
           <div className="cal-toolbar">
             <div className="cal-month-label">
               {MONTHS[viewMonth]} <span className="cal-year">{viewYear}</span>

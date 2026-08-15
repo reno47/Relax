@@ -8,8 +8,16 @@ dist
 dist-ssr
 *.local
 
+# Environment variables / secrets (PAT etc.)
+.env
+.env.*
+!.env.example
+
 # Local calendar data (personal, recreated at runtime)
 /data/
+
+# Local planning notes (not part of the product)
+plan.md
 
 # TypeScript build artifacts
 *.tsbuildinfo
@@ -26,3 +34,5 @@ vite.config.d.ts
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*

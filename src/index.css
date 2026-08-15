@@ -16,6 +16,7 @@
   --accent-infra: var(--accent);
   --accent-portals: var(--accent);
   --accent-calendar: var(--accent);
+  --accent-notes: var(--accent);
 
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   --radius: 12px;

@@ -54,21 +54,33 @@ export const githubColumns: LinkItem[][] = [
     { title: 'Platform-Ref', url: 'https://github.com/philips-internal/pics-platform-ref', description: 'pics-platform-ref' },
     { title: 'Reporting-Kustomize', url: 'https://github.com/philips-internal/pics-reporting-kustomize', description: 'pics-reporting-kustomize' },
     { title: 'Reporting-Infra', url: 'https://github.com/philips-internal/pics-reporting-infra', description: 'pics-reporting-infra' },
+  ],
+  // Column 4
+  [
     { title: 'Build-Base-Images', url: 'https://github.com/philips-internal/build-base-images', description: 'build-base-images' },
     { title: 'KCL-Modules', url: 'https://github.com/philips-internal/pics-kcl-modules', description: 'pics-kcl-modules' },
     { title: 'Workflows', url: 'https://github.com/philips-internal/pics-workflows', description: 'pics-workflows' },
   ],
-  // Column 4
+  // Column 5
   [
     { title: 'CDS-Service-Provider', url: 'https://github.com/philips-internal/cds-service-provider', description: 'cds-service-provider' },
     { title: 'CQL-Execution-Service', url: 'https://github.com/philips-internal/cql-execution-service', description: 'cql-execution-service' },
     { title: 'GitHub-Automation', url: 'https://github.com/philips-internal/pics-github-automation', description: 'pics-github-automation' },
     { title: 'PICS-User-Preference-Service', url: 'https://github.com/philips-internal/pics-user-preference-service', description: 'pics-user-preference-service' },
+  ],
+  // Column 6
+  [
     { title: 'PICS-Configuration-Service', url: 'https://github.com/philips-internal/pics-configuration-service', description: 'pics-configuration-service' },
     { title: 'Skills', url: 'https://github.com/philips-internal/pics-skills', description: 'pics-skills' },
     { title: 'PICS-Spartans-Playground', url: 'https://github.com/philips-internal/pics-spartans-playground', description: 'pics-spartans-playground' },
   ],
 ]
+
+// Default collapsible parent sections per column for the GitHub page.
+// Each column holds one or more named sections; sections contain link items.
+export const githubSectionColumns: { title: string; items: LinkItem[] }[][] = githubColumns.map(
+  (items, i) => [{ title: ['Core', 'AWS', 'Platform', 'Build', 'Services', 'Misc'][i] ?? `Section ${i + 1}`, items }],
+)
 
 // 3. Infra -------------------------------------------------------------------
 export const infraLinks = {
