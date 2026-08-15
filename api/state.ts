@@ -1,20 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { getUserId } from './_auth'
+import { getKv, withPrefix } from './_kv'
+import { migrateOwnerIfNeeded } from './_migrate'
 
-// Persists all `dashboard.*` UI state (TFS/GitHub/Infra/Portals customisations,
-// ordering and deletions) to Vercel KV when configured. If KV env vars are not
-// set, the endpoint degrades gracefully and the frontend keeps using
-// localStorage (data still survives a refresh per-browser).
-const KEY = 'dashboard:state'
-
-async function getKv() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
-  if (!url || !token) return null
-  const { createClient } = await import('@vercel/kv')
-  return createClient({ url, token })
-}
+// Persists a signed-in user's `dashboard.*` UI state to Vercel KV under a
+// per-user key (`user:{id}:state`). Requires a valid Clerk token. On the
+// owner's first read, migrates the pre-multitenant global blob into their space.
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const userId = await getUserId(req)
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+  const key = withPrefix(`user:${userId}:state`)
   const kv = await getKv()
 
   if (req.method === 'GET') {
@@ -22,7 +21,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(200).json({})
       return
     }
-    const data = (await kv.get(KEY)) ?? {}
+    await migrateOwnerIfNeeded(kv, userId)
+    const data = (await kv.get(key)) ?? {}
     res.status(200).json(data)
     return
   }
@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-      await kv.set(KEY, body)
+      await kv.set(key, body)
       res.status(200).json({ ok: true, stored: true })
     } catch {
       res.status(400).json({ ok: false })

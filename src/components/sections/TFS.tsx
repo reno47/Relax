@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { tfsLinks, type LinkItem } from '../../data/links'
 import tfsIcon from '../../assets/icons/tfs.svg'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AddItemForm } from './AddItemForm'
 import { Hero, RemovableCard } from './Shared'
 import { TfsLookup } from './TfsLookup'
+import { TfsSettings } from './TfsSettings'
 import { leafIteration, typeClass, type WorkItem } from './tfsUtils'
 
 export default function TFS() {
@@ -13,6 +14,7 @@ export default function TFS() {
     tfsLinks.backlog,
   ])
   const [workitems, setWorkitems] = useLocalStorage<WorkItem[]>('dashboard.tfs.workitems', [])
+  const [connected, setConnected] = useState(false)
 
   const existingIds = new Set(workitems.map((w) => w.id))
 
@@ -60,7 +62,12 @@ export default function TFS() {
         <AddItemForm label="+ Add link" onAdd={(item) => setBoards([...boards, item])} />
       </div>
 
-      <TfsLookup onAdd={addWorkItem} existingIds={existingIds} />
+      <div className="group">
+        <h2 className="group-title">Azure DevOps connection</h2>
+        <TfsSettings onConfiguredChange={setConnected} />
+      </div>
+
+      <TfsLookup onAdd={addWorkItem} existingIds={existingIds} enabled={connected} />
 
       {groups.length === 0 ? (
         <p className="tfs-empty">

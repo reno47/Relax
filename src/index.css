@@ -65,3 +65,33 @@ a {
 button {
   font-family: inherit;
 }
+
+/* Clerk sign-in screen + setup notice */
+.auth-screen,
+.setup-notice {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(900px 500px at 50% -10%, rgba(91, 141, 184, 0.18), transparent 60%),
+    var(--bg-0);
+}
+
+.setup-notice {
+  text-align: center;
+  color: var(--text-1);
+}
+
+.setup-notice h1 {
+  color: var(--text-0);
+  margin-bottom: 8px;
+}
+
+.setup-notice code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: #9ec3e4;
+}

@@ -1,0 +1,55 @@
+.sample-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1100px;
+  margin: 16px auto 0;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.sample-banner-text {
+  flex: 1 1 260px;
+  color: var(--text-1);
+  font-size: 0.9rem;
+}
+
+.sample-banner-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sample-clear,
+.sample-dismiss {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sample-clear {
+  border: 1px solid #7a2a38;
+  background: #5a2330;
+  color: #ff8a9a;
+}
+
+.sample-clear:hover {
+  background: #7a2a38;
+  color: #ffd0d7;
+}
+
+.sample-dismiss {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-1);
+}
+
+.sample-dismiss:hover {
+  background: var(--bg-2);
+  color: var(--text-0);
+}

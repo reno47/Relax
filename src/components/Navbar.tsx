@@ -30,6 +30,10 @@ interface NavbarProps {
   onLogout: () => void
 }
 
+// Repo that receives feedback issues; overridable per deployment.
+const FEEDBACK_REPO = import.meta.env.VITE_FEEDBACK_REPO || 'reno47/Personal-Dashboard'
+const FEEDBACK_URL = `https://github.com/${FEEDBACK_REPO}/issues/new/choose`
+
 export default function Navbar({ active, onChange, onLogout }: NavbarProps) {
   return (
     <nav className="navbar">
@@ -53,9 +57,20 @@ export default function Navbar({ active, onChange, onLogout }: NavbarProps) {
           </li>
         ))}
       </ul>
-      <button className="logout-btn" onClick={onLogout}>
-        Logout
-      </button>
+      <div className="navbar-right">
+        <a
+          className="feedback-link"
+          href={FEEDBACK_URL}
+          target="_blank"
+          rel="noreferrer"
+          title="Report a bug or request a feature on GitHub"
+        >
+          Feedback
+        </a>
+        <button className="logout-btn" onClick={onLogout}>
+          Logout
+        </button>
+      </div>
     </nav>
   )
 }

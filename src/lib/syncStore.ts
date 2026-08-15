@@ -10,6 +10,26 @@
 
 const ENDPOINT = '/api/state'
 
+type TokenGetter = () => Promise<string | null>
+let authTokenGetter: TokenGetter | null = null
+
+// Registered by the app once Clerk is ready, so the plain module can attach
+// the signed-in user's token to every API call.
+export function setAuthTokenGetter(fn: TokenGetter | null): void {
+  authTokenGetter = fn
+}
+
+async function authHeaders(base: Record<string, string> = {}): Promise<Record<string, string>> {
+  const headers = { ...base }
+  try {
+    const token = authTokenGetter ? await authTokenGetter() : null
+    if (token) headers.Authorization = `Bearer ${token}`
+  } catch {
+    /* no token — request will be rejected server-side */
+  }
+  return headers
+}
+
 function isSynced(key: string): boolean {
   return key.startsWith('dashboard.') && !key.startsWith('dashboard.calendar.')
 }
@@ -35,9 +55,12 @@ export function hydrate(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve()
   if (hydratePromise) return hydratePromise
 
-  hydratePromise = fetch(ENDPOINT)
-    .then((r) => (r.ok ? r.json() : null))
-    .then((data) => {
+  hydratePromise = (async () => {
+    try {
+      const headers = await authHeaders()
+      const r = await fetch(ENDPOINT, { headers })
+      if (!r.ok) return
+      const data = await r.json()
       if (!data || typeof data !== 'object') return
       for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
         if (!isSynced(key) || value === undefined || value === null) continue
@@ -48,10 +71,10 @@ export function hydrate(): Promise<void> {
         }
         listeners.get(key)?.forEach((fn) => fn(value))
       }
-    })
-    .catch(() => {
+    } catch {
       /* offline or store not configured — keep using localStorage */
-    })
+    }
+  })()
 
   return hydratePromise
 }
@@ -77,11 +100,11 @@ function pushNow(): void {
       /* skip unparseable values */
     }
   }
-  fetch(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(snapshot),
-  }).catch(() => {
-    /* ignore network errors — localStorage still holds the data */
-  })
+  authHeaders({ 'Content-Type': 'application/json' })
+    .then((headers) =>
+      fetch(ENDPOINT, { method: 'POST', headers, body: JSON.stringify(snapshot) }),
+    )
+    .catch(() => {
+      /* ignore network errors — localStorage still holds the data */
+    })
 }

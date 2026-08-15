@@ -1,14 +1,17 @@
 import { useState } from 'react'
+import { useAuth } from '@clerk/clerk-react'
 import { leafIteration, typeClass, type WorkItem } from './tfsUtils'
 
 interface TfsLookupProps {
   onAdd: (item: WorkItem) => void
   existingIds: ReadonlySet<number>
+  enabled: boolean
 }
 
 // Searches an Azure DevOps work item by ID (via /api/tfs), previews its
 // type/id/title/iteration, and lets you add it as a card.
-export function TfsLookup({ onAdd, existingIds }: Readonly<TfsLookupProps>) {
+export function TfsLookup({ onAdd, existingIds, enabled }: Readonly<TfsLookupProps>) {
+  const { getToken } = useAuth()
   const [id, setId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +28,10 @@ export function TfsLookup({ onAdd, existingIds }: Readonly<TfsLookupProps>) {
     setError(null)
     setPreview(null)
     try {
-      const r = await fetch(`/api/tfs?id=${trimmed}`)
+      const token = await getToken()
+      const r = await fetch(`/api/tfs?id=${trimmed}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
       const data = await r.json()
       if (!r.ok) {
         setError(data.error ?? 'Lookup failed.')
@@ -44,54 +50,60 @@ export function TfsLookup({ onAdd, existingIds }: Readonly<TfsLookupProps>) {
   return (
     <div className="group">
       <h2 className="group-title">Add a work item</h2>
-      <form className="tfs-lookup" onSubmit={lookup}>
-        <input
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          placeholder="Work item ID — story, bug or feature (e.g. 1753586)"
-          inputMode="numeric"
-        />
-        <button type="submit" className="btn-primary" disabled={loading || !id.trim()}>
-          {loading ? 'Searching…' : 'Search'}
-        </button>
-      </form>
-
-      {error && <div className="tfs-error">{error}</div>}
-
-      {preview && (
-        <div className="tfs-result">
-          <div className="wi-card-head">
-            <span className={`wi-type ${typeClass(preview.type)}`}>{preview.type || 'Item'}</span>
-            <span className="wi-id">#{preview.id}</span>
-          </div>
-          <div className="tfs-row">
-            <span className="tfs-label">Title</span>
-            <span className="tfs-value">{preview.title || '—'}</span>
-          </div>
-          <div className="tfs-row">
-            <span className="tfs-label">Iteration</span>
-            <span className="tfs-value">{leafIteration(preview.iteration)}</span>
-          </div>
-          <div className="tfs-preview-actions">
-            {preview.url && (
-              <a className="tfs-open" href={preview.url} target="_blank" rel="noreferrer">
-                Open in Azure DevOps ↗
-              </a>
-            )}
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={alreadyAdded}
-              onClick={() => {
-                onAdd(preview)
-                setPreview(null)
-                setId('')
-              }}
-            >
-              {alreadyAdded ? 'Already added' : '+ Add card'}
+      {!enabled ? (
+        <p className="tfs-empty">Connect your Azure DevOps account above to look up work items.</p>
+      ) : (
+        <>
+          <form className="tfs-lookup" onSubmit={lookup}>
+            <input
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              placeholder="Work item ID — story, bug or feature (e.g. 1753586)"
+              inputMode="numeric"
+            />
+            <button type="submit" className="btn-primary" disabled={loading || !id.trim()}>
+              {loading ? 'Searching…' : 'Search'}
             </button>
-          </div>
-        </div>
+          </form>
+
+          {error && <div className="tfs-error">{error}</div>}
+
+          {preview && (
+            <div className="tfs-result">
+              <div className="wi-card-head">
+                <span className={`wi-type ${typeClass(preview.type)}`}>{preview.type || 'Item'}</span>
+                <span className="wi-id">#{preview.id}</span>
+              </div>
+              <div className="tfs-row">
+                <span className="tfs-label">Title</span>
+                <span className="tfs-value">{preview.title || '—'}</span>
+              </div>
+              <div className="tfs-row">
+                <span className="tfs-label">Iteration</span>
+                <span className="tfs-value">{leafIteration(preview.iteration)}</span>
+              </div>
+              <div className="tfs-preview-actions">
+                {preview.url && (
+                  <a className="tfs-open" href={preview.url} target="_blank" rel="noreferrer">
+                    Open in Azure DevOps ↗
+                  </a>
+                )}
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={alreadyAdded}
+                  onClick={() => {
+                    onAdd(preview)
+                    setPreview(null)
+                    setId('')
+                  }}
+                >
+                  {alreadyAdded ? 'Already added' : '+ Add card'}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

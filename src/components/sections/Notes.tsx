@@ -28,8 +28,18 @@ function newId(prefix: string): string {
 const DEFAULT_SECTIONS: NoteSection[] = [
   {
     id: 'general',
-    name: 'General',
-    pages: [{ id: 'welcome', title: 'Welcome', html: '<p>Start typing…</p>' }],
+    name: 'Getting started',
+    pages: [
+      {
+        id: 'welcome',
+        title: 'Welcome',
+        html:
+          '<p>This is a <b>sample note</b>. You can make text <b>bold</b>, <i>italic</i>, ' +
+          '<u>underlined</u>, change <span style="color:#4f9cff">colors</span> and sizes, add lists, ' +
+          'and paste images.</p><ul><li>Add sections and pages on the left</li>' +
+          '<li>Set an optional date top-right</li></ul><p>Delete this and start your own.</p>',
+      },
+    ],
   },
 ]
 

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
-// Central configuration for all dashboard links.
-// 👉 Edit the URLs below to point to your real resources.
-//    Anything left as "#" is a placeholder you can update at any time.
+// Central configuration + sample/demo content for NEW users.
+// Nothing here is company-specific — it just shows how each tab can be
+// organised. Users edit/delete these or click "Clear sample data" to start fresh.
 // ---------------------------------------------------------------------------
 
 export interface LinkItem {
@@ -13,97 +13,60 @@ export interface LinkItem {
 // 1. TFS ---------------------------------------------------------------------
 export const tfsLinks = {
   boards: {
-    title: 'Board',
-    url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_boards/board/t/CVI%20Reporting%20Spartans/Stories',
-    description: 'CVI Reporting Spartans · Stories',
+    title: 'Sprint Board',
+    url: 'https://dev.azure.com',
+    description: 'Your team’s active sprint board',
   } as LinkItem,
   backlog: {
-    title: 'Backlog',
-    url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_backlogs/backlog/CVI%20Reporting%20Spartans/Features/?workitem=1740981',
-    description: 'CVI Reporting Spartans · Features',
+    title: 'Product Backlog',
+    url: 'https://dev.azure.com',
+    description: 'Prioritised backlog items',
   } as LinkItem,
   stories: [
-    { title: 'Story #1731342', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1731342' },
-    { title: 'Story #1730447', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1730447' },
-    { title: 'Story #1742351', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1742351' },
-    { title: 'Story #1710722', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1710722' },
-    { title: 'Story #1736440', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1736440' },
-    { title: 'Story #1614578', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1614578' },
-    { title: 'Story #1743469', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1743469' },
-    { title: 'Story #1742860', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1742860' },
-    { title: 'Story #1641860', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1641860' },
-    { title: 'Story #1619729', url: 'https://tfsemea1.ta.philips.com/tfs/TPC_Region11/Healthcare%20IT/_workitems/edit/1619729' },
+    { title: '#1201 — Login page redesign', url: 'https://dev.azure.com', description: 'In progress' },
+    { title: '#1198 — API rate limiting', url: 'https://dev.azure.com', description: 'To do' },
+    { title: '#1187 — Fix flaky calendar test', url: 'https://dev.azure.com', description: 'Done' },
   ] as LinkItem[],
 }
 
 // 2. GitHub ------------------------------------------------------------------
-// Organised into columns for display.
+// Sample repos spread across the first two columns; the rest start empty.
 export const githubColumns: LinkItem[][] = [
-  // Column 1
   [
-    { title: 'PICS', url: 'https://github.com/philips-internal/pics', description: 'pics' },
+    { title: 'my-portfolio', url: 'https://github.com', description: 'Personal website source' },
+    { title: 'dotfiles', url: 'https://github.com', description: 'Shell & editor config' },
   ],
-  // Column 2
   [
-    { title: 'AWS-Dev', url: 'https://github.com/philips-internal/pics-aws-dev', description: 'pics-aws-dev' },
-    { title: 'AWS-Prod', url: 'https://github.com/philips-internal/pics-aws-pre-production', description: 'pics-aws-pre-production' },
-    { title: 'AWS-Demo', url: 'https://github.com/philips-internal/pics-demo', description: 'pics-demo' },
+    { title: 'react', url: 'https://github.com/facebook/react', description: 'UI library' },
+    { title: 'vite', url: 'https://github.com/vitejs/vite', description: 'Build tool' },
   ],
-  // Column 3
-  [
-    { title: 'Platform-Ref', url: 'https://github.com/philips-internal/pics-platform-ref', description: 'pics-platform-ref' },
-    { title: 'Reporting-Kustomize', url: 'https://github.com/philips-internal/pics-reporting-kustomize', description: 'pics-reporting-kustomize' },
-    { title: 'Reporting-Infra', url: 'https://github.com/philips-internal/pics-reporting-infra', description: 'pics-reporting-infra' },
-  ],
-  // Column 4
-  [
-    { title: 'Build-Base-Images', url: 'https://github.com/philips-internal/build-base-images', description: 'build-base-images' },
-    { title: 'KCL-Modules', url: 'https://github.com/philips-internal/pics-kcl-modules', description: 'pics-kcl-modules' },
-    { title: 'Workflows', url: 'https://github.com/philips-internal/pics-workflows', description: 'pics-workflows' },
-  ],
-  // Column 5
-  [
-    { title: 'CDS-Service-Provider', url: 'https://github.com/philips-internal/cds-service-provider', description: 'cds-service-provider' },
-    { title: 'CQL-Execution-Service', url: 'https://github.com/philips-internal/cql-execution-service', description: 'cql-execution-service' },
-    { title: 'GitHub-Automation', url: 'https://github.com/philips-internal/pics-github-automation', description: 'pics-github-automation' },
-    { title: 'PICS-User-Preference-Service', url: 'https://github.com/philips-internal/pics-user-preference-service', description: 'pics-user-preference-service' },
-  ],
-  // Column 6
-  [
-    { title: 'PICS-Configuration-Service', url: 'https://github.com/philips-internal/pics-configuration-service', description: 'pics-configuration-service' },
-    { title: 'Skills', url: 'https://github.com/philips-internal/pics-skills', description: 'pics-skills' },
-    { title: 'PICS-Spartans-Playground', url: 'https://github.com/philips-internal/pics-spartans-playground', description: 'pics-spartans-playground' },
-  ],
+  [],
+  [],
+  [],
+  [],
 ]
 
 // Default collapsible parent sections per column for the GitHub page.
-// Each column holds one or more named sections; sections contain link items.
 export const githubSectionColumns: { title: string; items: LinkItem[] }[][] = githubColumns.map(
-  (items, i) => [{ title: ['Core', 'AWS', 'Platform', 'Build', 'Services', 'Misc'][i] ?? `Section ${i + 1}`, items }],
+  (items, i) => [{ title: ['My Repos', 'Team', 'Tools', 'Infra', 'Docs', 'More'][i] ?? `Section ${i + 1}`, items }],
 )
 
 // 3. Infra -------------------------------------------------------------------
 export const infraLinks = {
   aws: [
-    { title: 'AWS - All Accounts', url: 'https://hsp.awsapps.com/start/#/?tab=accounts', description: 'SSO start · account list' },
-    { title: 'AWS - Dev', url: 'https://hsp.awsapps.com/start/#/console?account_id=484907506255&role_name=AWSPowerUserAccess', description: 'PowerUser · 484907506255' },
-    { title: 'AWS - Prod', url: 'https://hsp.awsapps.com/start/#/console?account_id=145295680364&role_name=HSPReadOnlyAccess', description: 'ReadOnly · 145295680364' },
-    { title: 'ISCV - Dev', url: 'https://hsp.awsapps.com/start/#/console?account_id=364609070419&role_name=AWSAdministratorAccess', description: 'Admin · 364609070419' },
+    { title: 'AWS Console', url: 'https://console.aws.amazon.com', description: 'Cloud resources' },
   ] as LinkItem[],
   argocd: [
-    { title: 'Argo CD - Dev', url: 'https://argocd.223c-use1.caba644.hsp.philips.com/applications?showFavorites=false&page=0&search=&proj=&sync=&autoSync=&health=&namespace=&cluster=&labels=' },
-    { title: 'Argo CD - Prod', url: 'https://argocd.d206-euw1.05577eb.hsp.philips.com/applications' },
+    { title: 'Argo CD', url: 'https://argo-cd.readthedocs.io', description: 'GitOps deployments' },
   ] as LinkItem[],
   deployments: [
-    { title: 'Dev Deploy', url: 'https://dev.us-east.philips-healthsuite.com/worklist', description: 'Worklist · Dev environment' },
+    { title: 'Vercel Dashboard', url: 'https://vercel.com/dashboard', description: 'Frontend deployments' },
   ] as LinkItem[],
 }
 
 // 4. Important Portals -------------------------------------------------------
 export const portalLinks: LinkItem[] = [
-  { title: 'People Portal', url: 'https://philips.service-now.com/hrportal?id=hrportal_index', description: 'HR portal' },
-  { title: 'TEDS', url: 'https://www.tms.philips.com/tms/_t/81828/TEDSEveryOne.jsp', description: 'Time & expense system' },
-  { title: 'Cornerstone', url: 'https://philips.csod.com/ui/lms-learner-home/home?tab_page_id=-200300006&tab_id=-2', description: 'Learning & development' },
-  { title: 'Workday', url: 'https://wd3.myworkday.com/philips/d/pex/home.htmld', description: 'HR / payroll' },
-  { title: 'IT Service Portal', url: 'https://philips.service-now.com/itportal?id=index', description: 'Raise IT tickets' },
+  { title: 'Office 365', url: 'https://www.office.com', description: 'Mail, calendar & docs' },
+  { title: 'HR / Time', url: 'https://www.workday.com', description: 'Leave & timesheets' },
+  { title: 'Learning', url: 'https://www.linkedin.com/learning', description: 'Courses & training' },
 ]

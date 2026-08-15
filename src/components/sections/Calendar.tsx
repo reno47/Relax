@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAuth } from '@clerk/clerk-react'
 import calendarIcon from '../../assets/icons/calendar.svg'
 import './Calendar.css'
 
@@ -84,6 +85,7 @@ export default function CalendarView() {
   const [summaryYear, setSummaryYear] = useState<string>(String(today.getFullYear()))
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { getToken } = useAuth()
 
   // Becomes true once we've tried to load server data, so the save effect
   // below doesn't overwrite the server with stale localStorage values first.
@@ -94,7 +96,12 @@ export default function CalendarView() {
   // cleared site data and dev-server port changes.
   useEffect(() => {
     let cancelled = false
-    fetch('/api/calendar')
+    getToken()
+      .then((token) =>
+        fetch('/api/calendar', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }),
+      )
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled || !data) return
@@ -110,7 +117,7 @@ export default function CalendarView() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [getToken])
 
   // Persist whenever data changes — to localStorage (fast cache) and to the
   // server file (durable). Nothing is ever auto-deleted.
@@ -118,14 +125,21 @@ export default function CalendarView() {
     if (!hydrated) return
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
     localStorage.setItem(MARKS_KEY, JSON.stringify(marks))
-    fetch('/api/calendar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ categories, marks }),
-    }).catch(() => {
-      /* offline — localStorage still has the latest copy */
-    })
-  }, [categories, marks, hydrated])
+    getToken()
+      .then((token) =>
+        fetch('/api/calendar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ categories, marks }),
+        }),
+      )
+      .catch(() => {
+        /* offline — localStorage still has the latest copy */
+      })
+  }, [categories, marks, hydrated, getToken])
 
   const categoryById = useMemo(() => {
     const map: Record<string, Category> = {}
