@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getUserId } from './_auth'
-import { getKv, withPrefix } from './_kv'
-import { encryptSecret } from './_crypto'
+import { getUserId } from './_auth.js'
+import { getKv, withPrefix } from './_kv.js'
+import { encryptSecret } from './_crypto.js'
 
 // Per-user Azure DevOps connection settings. Stores the organization and an
 // encrypted PAT under `user:{userId}:tfs`. The PAT is never returned to the

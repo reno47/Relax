@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getUserId } from './_auth'
-import { getKv, withPrefix } from './_kv'
-import { migrateOwnerIfNeeded } from './_migrate'
+import { getUserId } from './_auth.js'
+import { getKv, withPrefix } from './_kv.js'
+import { migrateOwnerIfNeeded } from './_migrate.js'
 
 // Persists a signed-in user's `dashboard.*` UI state to Vercel KV under a
 // per-user key (`user:{id}:state`). Requires a valid Clerk token. On the

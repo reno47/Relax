@@ -1,5 +1,5 @@
-import type { Kv } from './_kv'
-import { withPrefix } from './_kv'
+import type { Kv } from './_kv.js'
+import { withPrefix } from './_kv.js'
 
 // Is this user the owner? Matches OWNER_USER_ID directly, or OWNER_EMAIL by
 // looking up the user's emails via Clerk.

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getUserId } from './_auth'
-import { getKv, withPrefix } from './_kv'
-import { decryptSecret } from './_crypto'
+import { getUserId } from './_auth.js'
+import { getKv, withPrefix } from './_kv.js'
+import { decryptSecret } from './_crypto.js'
 
 // Looks up an Azure DevOps (dev.azure.com) work item by ID and returns its
 // id, title and iteration. The PAT is per-user (encrypted at rest via

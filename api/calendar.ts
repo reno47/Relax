@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getUserId } from './_auth'
-import { getKv, withPrefix } from './_kv'
+import { getUserId } from './_auth.js'
+import { getKv, withPrefix } from './_kv.js'
 
 // Persists a signed-in user's calendar to Vercel KV under `user:{id}:calendar`.
 // Requires a valid Clerk token. (Owner migration is handled in /api/state.)
