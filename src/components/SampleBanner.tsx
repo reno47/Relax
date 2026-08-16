@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { ConfirmDialog } from './sections/ConfirmDialog'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import './sampleBanner.css'
 
 const DISMISS_KEY = 'dashboard.onboardingDismissed'
@@ -16,13 +17,12 @@ const EMPTY_STATE: Record<string, unknown> = {
 
 export function SampleBanner() {
   const { getToken } = useAuth()
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === '1')
+  const [dismissed, setDismissed] = useLocalStorage<boolean>(DISMISS_KEY, false)
   const [confirming, setConfirming] = useState(false)
 
   if (dismissed) return null
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, '1')
     setDismissed(true)
   }
 
@@ -30,7 +30,7 @@ export function SampleBanner() {
     for (const [k, v] of Object.entries(EMPTY_STATE)) localStorage.setItem(k, JSON.stringify(v))
     localStorage.setItem('dashboard.calendar.categories', '[]')
     localStorage.setItem('dashboard.calendar.marks', '{}')
-    localStorage.setItem(DISMISS_KEY, '1')
+    setDismissed(true)
     try {
       const token = await getToken()
       const headers = {
@@ -38,7 +38,11 @@ export function SampleBanner() {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       }
       await Promise.allSettled([
-        fetch('/api/state', { method: 'POST', headers, body: JSON.stringify(EMPTY_STATE) }),
+        fetch('/api/state', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ ...EMPTY_STATE, [DISMISS_KEY]: true }),
+        }),
         fetch('/api/calendar', {
           method: 'POST',
           headers,
