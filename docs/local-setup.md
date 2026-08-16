@@ -1,7 +1,7 @@
 # Local Setup & Contributing
 
-A step-by-step guide for a new collaborator to run the Personal Dashboard
-locally and contribute changes.
+A step-by-step guide for a new collaborator to run Relax locally and contribute
+changes.
 
 > Companion docs: [architecture.md](./architecture.md),
 > [codebase.md](./codebase.md), [deployment.md](./deployment.md).
@@ -32,8 +32,8 @@ locally and contribute changes.
 ## 2. Clone & install
 
 ```powershell
-git clone https://github.com/reno47/Personal-Dashboard.git
-cd Personal-Dashboard
+git clone https://github.com/reno47/Relax.git
+cd Relax
 npm install
 ```
 

@@ -1,6 +1,6 @@
 # Deployment & Environments
 
-How the Personal Dashboard is built, where it runs, how staging and production
+How Relax is built, where it runs, how staging and production
 are separated, and exactly what happens on every push and release.
 
 > Companion docs: [architecture.md](./architecture.md),
@@ -16,7 +16,7 @@ are separated, and exactly what happens on every push and release.
 | Database | **Upstash Redis** (one DB, shared by prod + staging via key prefix) |
 | Auth | **Clerk** |
 | CI/CD | **GitHub Actions** (`.github/workflows/deploy.yml`) |
-| Source | **GitHub** `reno47/Personal-Dashboard` |
+| Source | **GitHub** `reno47/Relax` |
 
 There is **one** Vercel project. "Staging" is not a separate project — it is the
 project's **Preview** environment. Environments are distinguished purely by

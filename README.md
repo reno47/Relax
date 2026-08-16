@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🗂️ Personal Dashboard
+# 🧘 Relax
 
-### Your work, your links, your day — all in one calm, fast place.
+### _Get it together — then relax._
 
-A personal productivity hub that brings your **Azure DevOps work items**,
+Relax is a personal productivity hub that brings your **Azure DevOps work items**,
 **GitHub repos**, **infrastructure links**, **important portals**, a **leave/status
 calendar**, and **rich notes** together into a single, beautiful dashboard —
 private to you, synced across your devices.
@@ -34,20 +34,9 @@ private to you, synced across your devices.
 
 ---
 
-## 🖼️ Screenshots
+##  Getting started
 
-> _A picture is worth a thousand tabs._ Screenshots live in `docs/images/`.
-
-<!-- Drop your screenshots into docs/images/ and uncomment: -->
-<!-- ![Dashboard – dark theme](docs/images/dashboard-dark.png) -->
-<!-- ![TFS assigned work items](docs/images/tfs-assigned.png) -->
-<!-- ![Light theme](docs/images/dashboard-light.png) -->
-
----
-
-## 🚀 Getting started
-
-Personal Dashboard is a **hosted web app** — there is nothing to install.
+Relax is a **hosted web app** — there is nothing to install.
 
 1. Access is **invite‑only**. Once you've been invited, you'll receive a sign‑in
    link.
@@ -87,9 +76,9 @@ Want to try TFS? In the **TFS** tab, open *Azure DevOps connection* and add your
 
 We'd love your input! Please use **GitHub Issues**:
 
-- 🐞 **Report a bug** → [open a bug report](https://github.com/reno47/Personal-Dashboard/issues/new)
-- 💡 **Suggest a feature** → [request an enhancement](https://github.com/reno47/Personal-Dashboard/issues/new)
-- 💬 Browse or comment on existing ideas → [all issues](https://github.com/reno47/Personal-Dashboard/issues)
+- 🐞 **Report a bug** → [open a bug report](https://github.com/reno47/Relax/issues/new)
+- 💡 **Suggest a feature** → [request an enhancement](https://github.com/reno47/Relax/issues/new)
+- 💬 Browse or comment on existing ideas → [all issues](https://github.com/reno47/Relax/issues)
 
 When reporting a bug, a quick description of **what you did**, **what you
 expected**, and **what happened** (plus your browser) helps us fix it faster.

@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the complete architecture of the Personal Dashboard
+This document describes the complete architecture of Relax
 application: its components, how they communicate, how data flows, and exactly
 how data is stored in the database.
 
