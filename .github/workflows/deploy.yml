@@ -5,7 +5,7 @@ name: Deploy
 # Upstash). Publishing a Release → production (Production env, prod Upstash).
 on:
   push:
-    branches: [productization]
+    branches: [productization, 'feature/**']
   release:
     types: [published]
 
