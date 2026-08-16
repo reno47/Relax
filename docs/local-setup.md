@@ -162,11 +162,10 @@ to `staging` or `main`.
 
 > Production deploys only on a published Release — never automatically on a merge.
 
-> **Push guard:** `npm install` installs a `pre-push` hook that blocks direct
-> pushes to `staging`/`main` (this repo is free + private, so GitHub can't enforce
-> branch protection — see
-> [deployment.md → Branch protection](./deployment.md#branch-protection)). The
-> owner can push to `staging` with `ALLOW_DIRECT_PUSH=1 git push origin staging`.
+> **Push protection:** the repo is public, so GitHub **enforces** the branch
+> rules — you can't push directly to `main` (PR-only), and only the owner can push
+> to `staging`. See
+> [deployment.md → Branch protection](./deployment.md#branch-protection).
 
 ### Coding conventions
 - **TypeScript:** prefer `type` over `interface`; never use `any`; co-locate

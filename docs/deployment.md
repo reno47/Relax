@@ -150,31 +150,33 @@ flowchart LR
 
 ### Branch protection
 
-> ⚠️ **Free-tier reality:** GitHub does **not** enforce branch protection or
-> rulesets on a **private** repo on the Free plan. Enforcement requires either a
-> **public** repo or a **paid** plan (Pro / Team). This repo is free + private,
-> so the rules below are **conventions backed by _soft guards_**, not
-> server-enforced walls.
+The repo is **public**, so GitHub **enforces** branch protection / rulesets for
+free — these are real server-side walls, not conventions.
 
-**Intended policy** (enforce for real by going public or paid — see table above):
-- `main`: no direct pushes by anyone; changes arrive only via the Promote PR.
-- `staging`: no direct pushes except the **owner**; contributors use PRs.
+**`main` — no direct pushes:**
+- ✅ Require a pull request before merging (≥1 approval).
+- ✅ Require status checks to pass → the **CI build**.
+- ✅ Require linear history.
+- ✅ Restrict deletions / force-pushes.
+- Only **Repository admin** is on the bypass list (needed for the Promote flow
+  and the occasional maintenance push).
 
-**Soft guards in this repo** (work on free + private):
-- **`pre-push` hook** ([.githooks/pre-push](../.githooks/pre-push)) — rejects
-  direct pushes to `main`/`staging` locally. Auto-installed by `npm install`
-  (the `prepare` script sets `core.hooksPath`). Owner override for `staging`:
-  `ALLOW_DIRECT_PUSH=1 git push origin staging`.
+**`staging` — owner may push directly, others via PR:**
+- ✅ Require a pull request before merging (for non-owners).
+- ✅ Require status checks to pass → the **CI build**.
+- ✅ Restrict who can push → allow-list the **owner** only.
+
+**Supporting workflows:**
 - **CI build check** ([.github/workflows/ci.yml](../.github/workflows/ci.yml)) —
-  runs `npm run build` on every PR into `staging`/`main`; reviewers gate merges
-  on the green check by convention.
+  runs `npm run build` on every PR into `staging`/`main`; wire it as a required
+  status check.
 - **Direct-push guard**
   ([.github/workflows/guard-direct-push.yml](../.github/workflows/guard-direct-push.yml))
-  — opens a tracking issue if a push to `main`/`staging` has no PR reference.
-  Best-effort alert; it can't block the push.
+  — opens a tracking issue if a push to `main`/`staging` slips in without a PR
+  reference (belt-and-suspenders now that the ruleset enforces PRs).
 
-> The Promote workflow still opens a **PR + auto-merge** into `main` (rebase), so
-> promotion mirrors the intended flow. Enable **Settings → General → Allow
+> The Promote workflow opens a **PR + auto-merge** into `main` (rebase), so
+> promotion goes through the protected path. Enable **Settings → General → Allow
 > auto-merge** and **rebase merging**.
 
 ### Versioning history (context)
