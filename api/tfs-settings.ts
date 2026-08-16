@@ -3,7 +3,7 @@ import { getUserId } from './_auth.js'
 import { getKv, withPrefix } from './_kv.js'
 import { encryptSecret } from './_crypto.js'
 
-type StoredTfs = { org: string; pat: string }
+type StoredTfs = { org: string; pat: string; area?: string }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const userId = await getUserId(req)
@@ -20,13 +20,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'GET') {
     const stored = await kv.get<StoredTfs>(key)
-    res.status(200).json({ configured: Boolean(stored?.pat), org: stored?.org ?? null })
+    res.status(200).json({ configured: Boolean(stored?.pat), org: stored?.org ?? null, area: stored?.area ?? null })
     return
   }
 
   if (req.method === 'POST') {
-    const { pat, org } = (req.body ?? {}) as { pat?: string; org?: string }
+    const { pat, org, area } = (req.body ?? {}) as { pat?: string; org?: string; area?: string }
     const orgVal = (org ?? '').trim()
+    const areaVal = (area ?? '').trim()
     if (!pat?.trim()) {
       res.status(400).json({ error: 'Provide a Personal Access Token.' })
       return
@@ -35,14 +36,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(400).json({ error: 'Provide your Azure DevOps organization.' })
       return
     }
-    await kv.set(key, { org: orgVal, pat: encryptSecret(pat.trim()) } satisfies StoredTfs)
-    res.status(200).json({ configured: true, org: orgVal })
+    await kv.set(key, {
+      org: orgVal,
+      pat: encryptSecret(pat.trim()),
+      ...(areaVal ? { area: areaVal } : {}),
+    } satisfies StoredTfs)
+    res.status(200).json({ configured: true, org: orgVal, area: areaVal || null })
     return
   }
 
   if (req.method === 'DELETE') {
     await kv.del(key)
-    res.status(200).json({ configured: false, org: null })
+    res.status(200).json({ configured: false, org: null, area: null })
     return
   }
 

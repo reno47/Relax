@@ -1,31 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { getUserId } from './_auth.js'
-import { getKv, withPrefix } from './_kv.js'
-import { decryptSecret } from './_crypto.js'
-
-type StoredTfs = { org: string; pat: string }
-
-async function resolveCredentials(
-  userId: string,
-): Promise<{ pat: string; org: string } | null> {
-  const kv = await getKv()
-  if (kv) {
-    const stored = await kv.get<StoredTfs>(withPrefix(`user:${userId}:tfs`))
-    if (stored?.pat) {
-      try {
-        return { pat: decryptSecret(stored.pat), org: stored.org }
-      } catch {
-        
-      }
-    }
-  }
-
-  const owner = process.env.OWNER_USER_ID
-  if (owner && userId === owner && process.env.AZDO_PAT) {
-    return { pat: process.env.AZDO_PAT, org: process.env.AZDO_ORG || '' }
-  }
-  return null
-}
+import { resolveTfsCredentials, basicAuth, WI_FIELDS } from './_tfs.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const userId = await getUserId(req)
@@ -34,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return
   }
 
-  const creds = await resolveCredentials(userId)
+  const creds = await resolveTfsCredentials(userId)
   const id = String(req.query.id ?? '').trim()
 
   if (!creds) {
@@ -51,12 +26,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { pat, org } = creds
-  const fields = 'System.Id,System.Title,System.IterationPath,System.WorkItemType,System.State'
-  const url = `https://dev.azure.com/${encodeURIComponent(org)}/_apis/wit/workitems/${id}?fields=${fields}&api-version=7.0`
-  const auth = Buffer.from(`:${pat}`).toString('base64')
+  const url = `https://dev.azure.com/${encodeURIComponent(org)}/_apis/wit/workitems/${id}?fields=${WI_FIELDS}&api-version=7.0`
 
   try {
-    const r = await fetch(url, { headers: { Authorization: `Basic ${auth}` } })
+    const r = await fetch(url, { headers: { Authorization: basicAuth(pat) } })
     if (r.status === 401 || r.status === 403) {
       res.status(r.status).json({ error: 'Unauthorized — check the PAT and its scope.' })
       return

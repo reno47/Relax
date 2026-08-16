@@ -5,14 +5,15 @@ interface TfsSettingsProps {
   onConfiguredChange: (configured: boolean) => void
 }
 
-type Status = { configured: boolean; org: string | null }
+type Status = { configured: boolean; org: string | null; area: string | null }
 
 export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) {
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [status, setStatus] = useState<Status>({ configured: false, org: null })
+  const [status, setStatus] = useState<Status>({ configured: false, org: null, area: null })
   const [editing, setEditing] = useState(false)
   const [org, setOrg] = useState('')
+  const [area, setArea] = useState('')
   const [pat, setPat] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,14 +60,14 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
       const r = await fetch('/api/tfs-settings', {
         method: 'POST',
         headers: await authHeaders(),
-        body: JSON.stringify({ org: org.trim(), pat: pat.trim() }),
+        body: JSON.stringify({ org: org.trim(), pat: pat.trim(), area: area.trim() }),
       })
       const data = await r.json()
       if (!r.ok) {
         setError(data.error ?? 'Could not save.')
         return
       }
-      apply({ configured: true, org: data.org ?? org.trim() })
+      apply({ configured: true, org: data.org ?? org.trim(), area: data.area ?? (area.trim() || null) })
       setPat('')
       setEditing(false)
     } catch {
@@ -86,8 +87,9 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
         setError(data.error ?? 'Could not remove.')
         return
       }
-      apply({ configured: false, org: null })
+      apply({ configured: false, org: null, area: null })
       setOrg('')
+      setArea('')
       setEditing(false)
     } catch {
       setError('Could not reach the server.')
@@ -104,6 +106,7 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
         <span className="tfs-conn-dot" aria-hidden="true" />
         <span className="tfs-conn-text">
           Connected to <strong>{status.org}</strong>
+          {status.area ? <> · area <strong>{status.area}</strong></> : null}
         </span>
         <div className="tfs-conn-actions">
           <button
@@ -111,6 +114,7 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
             className="tfs-link-btn"
             onClick={() => {
               setOrg(status.org ?? '')
+              setArea(status.area ?? '')
               setEditing(true)
             }}
           >
@@ -147,6 +151,15 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
           value={pat}
           onChange={(e) => setPat(e.target.value)}
           placeholder="Paste your PAT"
+          autoComplete="off"
+        />
+      </label>
+      <label className="tfs-field">
+        <span>Area path (optional)</span>
+        <input
+          value={area}
+          onChange={(e) => setArea(e.target.value)}
+          placeholder="e.g. Project\\Area — limits assigned items to this area and below"
           autoComplete="off"
         />
       </label>
