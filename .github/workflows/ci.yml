@@ -1,0 +1,19 @@
+name: CI
+
+# Build check for every PR into a protected branch. On a free private repo this
+# can't be a *required* check, but it gives reviewers a clear green/red signal.
+on:
+  pull_request:
+    branches: [staging, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build

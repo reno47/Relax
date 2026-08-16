@@ -148,32 +148,34 @@ flowchart LR
 > Production is **not** auto-deployed when `main` changes — it deploys only on a
 > published **Release**. Promotion and release are two deliberate steps.
 
-### Branch protection (configure in GitHub → Settings → Branches)
+### Branch protection
 
-**`main` — locked down for everyone (no bypass):**
-- ✅ Require a pull request before merging (≥1 approval).
-- ✅ Require status checks to pass (the build).
-- ✅ Require linear history.
-- ✅ **Do not allow bypassing the above settings** (blocks direct pushes for
-  *all* users, including admins and the Actions bot).
-- ✅ Restrict who can push → leave the allow-list **empty**.
+> ⚠️ **Free-tier reality:** GitHub does **not** enforce branch protection or
+> rulesets on a **private** repo on the Free plan. Enforcement requires either a
+> **public** repo or a **paid** plan (Pro / Team). This repo is free + private,
+> so the rules below are **conventions backed by _soft guards_**, not
+> server-enforced walls.
 
-**`staging` — protected, but the owner may push directly:**
-- ✅ Require a pull request before merging (≥1 approval) for contributors.
-- ✅ Require status checks to pass (the build).
-- ✅ Require linear history.
-- ✅ Restrict who can push → add **only the owner** to the allow-list (everyone
-   else must go through a PR).
-- ⛔ Leave **"Do not allow bypassing"** *unchecked* so the allow-listed owner can
-   still push directly.
+**Intended policy** (enforce for real by going public or paid — see table above):
+- `main`: no direct pushes by anyone; changes arrive only via the Promote PR.
+- `staging`: no direct pushes except the **owner**; contributors use PRs.
 
-> Because `main` blocks direct pushes for everyone, the Promote workflow uses a
-> **PR + auto-merge** (not a direct push). Enable **Settings → General → Allow
-> auto-merge** and allow **rebase merges**. If `main` also requires a review, you
-> approve the promotion PR — a deliberate production gate.
-> Auto-merge runs when required checks pass; if you require status checks on
-> `main`, either drop that requirement (staging already validated the code) or
-> create the promotion PR with a PAT so its checks trigger.
+**Soft guards in this repo** (work on free + private):
+- **`pre-push` hook** ([.githooks/pre-push](../.githooks/pre-push)) — rejects
+  direct pushes to `main`/`staging` locally. Auto-installed by `npm install`
+  (the `prepare` script sets `core.hooksPath`). Owner override for `staging`:
+  `ALLOW_DIRECT_PUSH=1 git push origin staging`.
+- **CI build check** ([.github/workflows/ci.yml](../.github/workflows/ci.yml)) —
+  runs `npm run build` on every PR into `staging`/`main`; reviewers gate merges
+  on the green check by convention.
+- **Direct-push guard**
+  ([.github/workflows/guard-direct-push.yml](../.github/workflows/guard-direct-push.yml))
+  — opens a tracking issue if a push to `main`/`staging` has no PR reference.
+  Best-effort alert; it can't block the push.
+
+> The Promote workflow still opens a **PR + auto-merge** into `main` (rebase), so
+> promotion mirrors the intended flow. Enable **Settings → General → Allow
+> auto-merge** and **rebase merging**.
 
 ### Versioning history (context)
 - `v1.0.0` baseline, `v2.0.0` feature set.
