@@ -30,7 +30,6 @@ interface NavbarProps {
   onLogout: () => void
 }
 
-// Repo that receives feedback issues; overridable per deployment.
 const FEEDBACK_REPO = import.meta.env.VITE_FEEDBACK_REPO || 'reno47/Personal-Dashboard'
 const FEEDBACK_URL = `https://github.com/${FEEDBACK_REPO}/issues/new/choose`
 

@@ -2,9 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { getUserId } from './_auth.js'
 import { getKv, withPrefix } from './_kv.js'
 
-// Persists a signed-in user's calendar to Vercel KV under `user:{id}:calendar`.
-// Requires a valid Clerk token. (Owner migration is handled in /api/state.)
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const userId = await getUserId(req)
   if (!userId) {
@@ -26,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     if (!kv) {
-      // No store configured — tell the client it wasn't persisted server-side.
+
       res.status(200).json({ ok: true, stored: false })
       return
     }

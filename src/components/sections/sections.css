@@ -16,7 +16,6 @@
   }
 }
 
-/* Hero ---------------------------------------------------------------- */
 .hero {
   position: relative;
   display: flex;
@@ -68,7 +67,6 @@
   color: var(--section-accent);
 }
 
-/* Sub-groups ---------------------------------------------------------- */
 .group {
   margin-bottom: 30px;
 }
@@ -90,14 +88,12 @@
   background: var(--section-accent);
 }
 
-/* Card grid ----------------------------------------------------------- */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 16px;
 }
 
-/* Column layout (GitHub) ---------------------------------------------- */
 .github-section {
   max-width: 1600px;
 }
@@ -213,7 +209,6 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--section-accent) 35%, transparent);
 }
 
-/* Collapsible parent sections (GitHub) -------------------------------- */
 .gh-parent {
   position: relative;
   display: flex;
@@ -320,7 +315,6 @@
   margin-top: 0;
 }
 
-/* End-of-column drop target for moving parent sections */
 .gh-section-dropzone {
   min-height: 0;
   border-radius: 10px;
@@ -338,7 +332,6 @@
   background: color-mix(in srgb, var(--section-accent) 10%, transparent);
 }
 
-/* Per-section drop target */
 .section-dropzone {
   min-height: 16px;
   border-radius: 8px;
@@ -352,8 +345,6 @@
   background: color-mix(in srgb, var(--section-accent) 8%, transparent);
 }
 
-/* Trailing drop zone fills the leftover height so you can always drop at
-   the end of a column (even shorter ones). */
 .column-dropzone {
   flex: 1 1 auto;
   min-height: 48px;
@@ -367,7 +358,6 @@
   background: color-mix(in srgb, var(--section-accent) 8%, transparent);
 }
 
-/* Draggable card wrapper */
 .dnd-card {
   position: relative;
   cursor: grab;
@@ -466,7 +456,6 @@
   font-size: 0.85rem;
 }
 
-/* List style ---------------------------------------------------------- */
 .link-list {
   display: flex;
   flex-direction: column;
@@ -518,7 +507,6 @@
   border: 1px solid var(--border);
 }
 
-/* TFS work-item lookup ------------------------------------------------ */
 .tfs-lookup {
   display: flex;
   gap: 10px;
@@ -542,7 +530,6 @@
   border-color: var(--section-accent, var(--accent));
 }
 
-/* TFS connection settings --------------------------------------------- */
 .tfs-settings {
   max-width: 480px;
   display: flex;
@@ -716,7 +703,6 @@
   padding: 4px 2px;
 }
 
-/* Work-item cards (grouped by iteration) ------------------------------ */
 .wi-card {
   position: relative;
   display: flex;
@@ -832,7 +818,6 @@
   color: #ff8a9a;
 }
 
-/* Removable card (user-managed items) --------------------------------- */
 .card-wrap {
   position: relative;
 }
@@ -883,7 +868,6 @@
   color: #ff8a9a;
 }
 
-/* Add item / section forms -------------------------------------------- */
 .add-toggle {
   margin-top: 14px;
   width: 100%;
@@ -1007,7 +991,6 @@
   cursor: not-allowed;
 }
 
-/* Section header with delete (Infra) ---------------------------------- */
 .section-head {
   display: flex;
   align-items: center;
@@ -1041,7 +1024,6 @@
   border-color: #5a2330;
 }
 
-/* Edit / remove buttons on GitHub drag cards -------------------------- */
 .dnd-actions {
   position: absolute;
   top: 6px;

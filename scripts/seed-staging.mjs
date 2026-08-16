@@ -1,16 +1,3 @@
-// Seed or reset STAGING data with synthetic sample content so staging mirrors a
-// real, populated account. Staging shares the same Upstash DB as production but
-// is isolated by a key prefix (default "staging:"), so production keys (which
-// are unprefixed) are never touched.
-//
-// Usage (PowerShell):
-//   $env:SEED_USER_ID = "user_xxx"            # a Clerk user id in the staging Clerk instance
-//   $env:KV_REST_API_URL = "https://<db>.upstash.io"
-//   $env:KV_REST_API_TOKEN = "<token>"
-//   npm run seed:staging                       # populate  (keys: staging:user:...)
-//   npm run seed:staging -- --reset            # clear this user's staging data
-//
-// KV_KEY_PREFIX overrides the namespace (must match the Preview env's prefix).
 import { createClient } from '@vercel/kv'
 
 const url =

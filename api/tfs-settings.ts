@@ -3,10 +3,7 @@ import { getUserId } from './_auth.js'
 import { getKv, withPrefix } from './_kv.js'
 import { encryptSecret } from './_crypto.js'
 
-// Per-user Azure DevOps connection settings. Stores the organization and an
-// encrypted PAT under `user:{userId}:tfs`. The PAT is never returned to the
-// browser — GET only reports whether a token is configured.
-type StoredTfs = { org: string; pat: string } // `pat` is encrypted at rest
+type StoredTfs = { org: string; pat: string }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const userId = await getUserId(req)

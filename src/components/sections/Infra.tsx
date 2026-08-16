@@ -11,8 +11,6 @@ interface Section {
   items: LinkItem[]
 }
 
-// Initial sections seed from config. After this, the Infra layout is fully
-// user-managed (add/remove sections and items) and persisted in localStorage.
 const DEFAULT_SECTIONS: Section[] = [
   { id: 'aws', title: 'AWS', items: infraLinks.aws },
   { id: 'argocd', title: 'Argo CD', items: infraLinks.argocd },
@@ -99,7 +97,6 @@ export default function Infra() {
         </div>
       ))}
 
-      {/* Add a new section */}
       {addingSection ? (
         <form className="add-form add-section-form" onSubmit={addSection}>
           <input

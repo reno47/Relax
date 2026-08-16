@@ -7,9 +7,6 @@ interface TfsSettingsProps {
 
 type Status = { configured: boolean; org: string | null }
 
-// Manage the user's own Azure DevOps connection: organization + Personal
-// Access Token. The PAT is write-only from the browser's perspective — it is
-// sent to /api/tfs-settings and never read back.
 export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) {
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(true)
@@ -44,7 +41,7 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
         const data = (await r.json()) as Status
         if (active) apply(data)
       } catch {
-        /* leave unconfigured */
+        
       } finally {
         if (active) setLoading(false)
       }

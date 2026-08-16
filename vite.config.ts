@@ -7,9 +7,6 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const USERS_DIR = path.resolve(__dirname, 'data', 'users')
 
-// Dev-only: decode the Clerk token's `sub` (no signature check — this is the
-// local dev server, not a security boundary). Real verification happens in the
-// serverless `/api` functions on Vercel.
 function devUserId(req: { headers: Record<string, string | string[] | undefined> }): string | null {
   const header = req.headers.authorization
   const value = Array.isArray(header) ? header[0] : header
@@ -42,28 +39,7 @@ function writeUserJson(userId: string, name: string, body: string): void {
   fs.writeFileSync(file, body, 'utf-8')
 }
 
-// Dev-only owner migration: seed the owner's per-user file from the old global
-// file once (mirrors the serverless Phase 3 migration). Matches OWNER_USER_ID.
-function devMigrateOwner(env: Record<string, string>, userId: string, fileName: string): void {
-  if (!env.OWNER_USER_ID || env.OWNER_USER_ID !== userId) return
-  const userPath = userFile(userId, fileName)
-  try {
-    const cur = JSON.parse(fs.readFileSync(userPath, 'utf-8'))
-    if (cur && Object.keys(cur).length > 0) return // already has data
-  } catch {
-    /* no user file yet — continue */
-  }
-  try {
-    const g = fs.readFileSync(path.resolve(__dirname, 'data', fileName), 'utf-8')
-    fs.mkdirSync(path.dirname(userPath), { recursive: true })
-    fs.writeFileSync(userPath, g, 'utf-8')
-  } catch {
-    /* no global backup to migrate */
-  }
-}
-
-// Per-user JSON file API (auth-gated) used by the calendar and dashboard state.
-function userJsonApi(env: Record<string, string>, route: string, fileName: string, fallback: string) {
+function userJsonApi(route: string, fileName: string, fallback: string) {
   return (server: ViteDevServer | PreviewServer) => {
     server.middlewares.use(route, (req, res) => {
       const send = (code: number, str: string) => {
@@ -75,7 +51,6 @@ function userJsonApi(env: Record<string, string>, route: string, fileName: strin
       if (!userId) return send(401, '{"error":"Unauthorized"}')
 
       if (req.method === 'GET') {
-        devMigrateOwner(env, userId, fileName)
         return send(200, readUserJson(userId, fileName, fallback))
       }
       if (req.method === 'POST') {
@@ -83,7 +58,7 @@ function userJsonApi(env: Record<string, string>, route: string, fileName: strin
         req.on('data', (chunk) => (body += chunk))
         req.on('end', () => {
           try {
-            JSON.parse(body) // validate
+            JSON.parse(body)
             writeUserJson(userId, fileName, body)
             send(200, '{"ok":true}')
           } catch {
@@ -97,11 +72,9 @@ function userJsonApi(env: Record<string, string>, route: string, fileName: strin
   }
 }
 
-// Persists per-user calendar + dashboard state to JSON files on disk so local
-// dev mirrors the per-user isolation of the serverless functions.
-function dashboardApiPlugin(env: Record<string, string>): Plugin {
-  const attachCalendar = userJsonApi(env, '/api/calendar', 'calendar.json', '{"categories":null,"marks":null}')
-  const attachState = userJsonApi(env, '/api/state', 'state.json', '{}')
+function dashboardApiPlugin(): Plugin {
+  const attachCalendar = userJsonApi('/api/calendar', 'calendar.json', '{"categories":null,"marks":null}')
+  const attachState = userJsonApi('/api/state', 'state.json', '{}')
   const attach = (server: ViteDevServer | PreviewServer) => {
     attachCalendar(server)
     attachState(server)
@@ -113,9 +86,6 @@ function dashboardApiPlugin(env: Record<string, string>): Plugin {
   }
 }
 
-// Dev-time Azure DevOps work-item lookup, mirroring the /api/tfs serverless
-// function so it also works with `npm run dev` / `vite preview`. Uses the
-// per-user PAT saved via /api/tfs-settings; the owner may fall back to env.
 function readUserTfs(userId: string): { org?: string; pat?: string } {
   try {
     return JSON.parse(readUserJson(userId, 'tfs.json', '{}'))
@@ -174,9 +144,6 @@ function tfsApiPlugin(env: Record<string, string>): Plugin {
   return { name: 'tfs-api', configureServer: attach, configurePreviewServer: attach }
 }
 
-// Dev-time per-user TFS connection settings, mirroring /api/tfs-settings.
-// Stored as plaintext in the gitignored data/users dir (dev is not a security
-// boundary; production encrypts the PAT at rest).
 function tfsSettingsApiPlugin(): Plugin {
   const attach = (server: ViteDevServer | PreviewServer) => {
     server.middlewares.use('/api/tfs-settings', (req, res) => {
@@ -219,10 +186,9 @@ function tfsSettingsApiPlugin(): Plugin {
   return { name: 'tfs-settings-api', configureServer: attach, configurePreviewServer: attach }
 }
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
-    plugins: [react(), dashboardApiPlugin(env), tfsApiPlugin(env), tfsSettingsApiPlugin()],
+    plugins: [react(), dashboardApiPlugin(), tfsApiPlugin(env), tfsSettingsApiPlugin()],
   }
 })

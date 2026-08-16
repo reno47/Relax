@@ -8,8 +8,6 @@ interface TfsLookupProps {
   enabled: boolean
 }
 
-// Searches an Azure DevOps work item by ID (via /api/tfs), previews its
-// type/id/title/iteration, and lets you add it as a card.
 export function TfsLookup({ onAdd, existingIds, enabled }: Readonly<TfsLookupProps>) {
   const { getToken } = useAuth()
   const [id, setId] = useState('')

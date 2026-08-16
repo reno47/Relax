@@ -3,16 +3,13 @@ import { useAuth } from '@clerk/clerk-react'
 import calendarIcon from '../../assets/icons/calendar.svg'
 import './Calendar.css'
 
-// ---------------------------------------------------------------------------
-// Types & persistence helpers
-// ---------------------------------------------------------------------------
 interface Category {
   id: string
   name: string
   color: string
 }
 
-type Marks = Record<string, string> // dateKey -> categoryId
+type Marks = Record<string, string>
 
 const CATEGORIES_KEY = 'dashboard.calendar.categories'
 const MARKS_KEY = 'dashboard.calendar.marks'
@@ -29,7 +26,6 @@ const PRESET_COLORS = [
   '#ff5c8a', '#27d3c9', '#f7c948', '#8e9aff', '#9b9b9b',
 ]
 
-// Earliest year offered by the summary year filter.
 const SUMMARY_START_YEAR = 2026
 
 function loadJSON<T>(key: string, fallback: T): T {
@@ -55,9 +51,6 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 export default function CalendarView() {
   const today = new Date()
 
@@ -69,16 +62,13 @@ export default function CalendarView() {
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
 
-  // The active "brush": the category applied when a day is clicked.
   const [activeCategory, setActiveCategory] = useState<string | null>(
     () => loadJSON(CATEGORIES_KEY, DEFAULT_CATEGORIES)[0]?.id ?? null,
   )
 
-  // New-category form state
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState(PRESET_COLORS[4])
 
-  // Summary panel: count marks of a category, filtered by year (or all).
   const [summaryCategory, setSummaryCategory] = useState<string>(
     () => loadJSON(CATEGORIES_KEY, DEFAULT_CATEGORIES)[0]?.id ?? '',
   )
@@ -87,13 +77,8 @@ export default function CalendarView() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { getToken } = useAuth()
 
-  // Becomes true once we've tried to load server data, so the save effect
-  // below doesn't overwrite the server with stale localStorage values first.
   const [hydrated, setHydrated] = useState(false)
 
-  // On mount: load the source-of-truth from the server (file on disk).
-  // This is what makes the data survive across browsers, incognito,
-  // cleared site data and dev-server port changes.
   useEffect(() => {
     let cancelled = false
     getToken()
@@ -109,7 +94,7 @@ export default function CalendarView() {
         if (data.marks && typeof data.marks === 'object') setMarks(data.marks)
       })
       .catch(() => {
-        /* server unavailable — keep localStorage cache */
+        
       })
       .finally(() => {
         if (!cancelled) setHydrated(true)
@@ -119,8 +104,6 @@ export default function CalendarView() {
     }
   }, [getToken])
 
-  // Persist whenever data changes — to localStorage (fast cache) and to the
-  // server file (durable). Nothing is ever auto-deleted.
   useEffect(() => {
     if (!hydrated) return
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
@@ -137,7 +120,7 @@ export default function CalendarView() {
         }),
       )
       .catch(() => {
-        /* offline — localStorage still has the latest copy */
+        
       })
   }, [categories, marks, hydrated, getToken])
 
@@ -147,7 +130,6 @@ export default function CalendarView() {
     return map
   }, [categories])
 
-  // Year filter options: SUMMARY_START_YEAR .. currentYear + 1.
   const summaryYears = useMemo(() => {
     const end = today.getFullYear() + 1
     const ys: number[] = []
@@ -155,7 +137,6 @@ export default function CalendarView() {
     return ys
   }, [today])
 
-  // Fall back to the first category if the selected one was deleted.
   const activeSummaryCat = categories.some((c) => c.id === summaryCategory)
     ? summaryCategory
     : categories[0]?.id ?? ''
@@ -170,7 +151,6 @@ export default function CalendarView() {
     return n
   }, [marks, activeSummaryCat, summaryYear])
 
-  // Build the grid of day cells (with leading blanks).
   const cells = useMemo(() => {
     const firstWeekday = new Date(viewYear, viewMonth, 1).getDay()
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
@@ -181,7 +161,6 @@ export default function CalendarView() {
     return arr
   }, [viewYear, viewMonth])
 
-  // --- Actions --------------------------------------------------------------
   function goPrevMonth() {
     setViewMonth((m) => {
       if (m === 0) {
@@ -212,10 +191,10 @@ export default function CalendarView() {
     setMarks((prev) => {
       const next = { ...prev }
       if (activeCategory === null) {
-        // Eraser mode
+
         delete next[key]
       } else if (next[key] === activeCategory) {
-        // Toggle off if same category clicked again
+
         delete next[key]
       } else {
         next[key] = activeCategory
@@ -237,7 +216,7 @@ export default function CalendarView() {
 
   function deleteCategory(id: string) {
     setCategories((prev) => prev.filter((c) => c.id !== id))
-    // Remove marks that used this category so the calendar stays consistent.
+
     setMarks((prev) => {
       const next: Marks = {}
       for (const [k, v] of Object.entries(prev)) {
@@ -248,7 +227,6 @@ export default function CalendarView() {
     setActiveCategory((cur) => (cur === id ? null : cur))
   }
 
-  // --- Backup / restore -----------------------------------------------------
   function exportData() {
     const payload = JSON.stringify({ categories, marks }, null, 2)
     const blob = new Blob([payload], { type: 'application/json' })
@@ -263,7 +241,7 @@ export default function CalendarView() {
 
   function importData(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    e.target.value = '' // allow re-importing the same file later
+    e.target.value = ''
     if (!file) return
     file
       .text()
@@ -301,7 +279,6 @@ export default function CalendarView() {
       </div>
 
       <div className="calendar-layout">
-        {/* ---------------- Sidebar: categories ---------------- */}
         <aside className="cal-sidebar">
           <h3 className="panel-title">Categories</h3>
           <p className="panel-hint">Pick one, then click a day to mark it.</p>
@@ -399,7 +376,6 @@ export default function CalendarView() {
           </div>
         </aside>
 
-        {/* ---------------- Main: month grid ---------------- */}
         <div className="cal-main">
           <div className="cal-summary">
             <div className="summary-controls">
@@ -488,7 +464,6 @@ export default function CalendarView() {
             })}
           </div>
 
-          {/* Legend */}
           <div className="cal-legend">
             {categories.map((c) => (
               <span key={c.id} className="legend-item">

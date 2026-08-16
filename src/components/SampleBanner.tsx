@@ -5,7 +5,6 @@ import './sampleBanner.css'
 
 const DISMISS_KEY = 'dashboard.onboardingDismissed'
 
-// The per-tab keys reset to empty when clearing sample data.
 const EMPTY_STATE: Record<string, unknown> = {
   'dashboard.tfs.boards': [],
   'dashboard.tfs.workitems': [],
@@ -47,7 +46,7 @@ export function SampleBanner() {
         }),
       ])
     } catch {
-      /* offline — local reset still applies */
+      
     }
     location.reload()
   }

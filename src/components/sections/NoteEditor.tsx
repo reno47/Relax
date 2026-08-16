@@ -13,9 +13,6 @@ const COLOR_PRESETS = [
   '#ff5c8a', '#c0392b', '#16a085', '#2c3e50',
 ]
 
-// Plain rich-text editor (not markdown). Uses contentEditable + execCommand for
-// basic formatting, supports arbitrary font sizes, preset/custom colors, and
-// inlines pasted images as data URLs.
 export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
   const ref = useRef<HTMLDivElement>(null)
   const savedRange = useRef<Range | null>(null)
@@ -28,10 +25,9 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
 
   useEffect(() => {
     if (ref.current) ref.current.innerHTML = html || ''
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [])
 
-  // Close the size dropdown when clicking outside it.
   useEffect(() => {
     if (!sizeOpen) return
     const onDown = (e: MouseEvent) => {
@@ -41,7 +37,6 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
     return () => document.removeEventListener('mousedown', onDown)
   }, [sizeOpen])
 
-  // Close the color popover when clicking outside it.
   useEffect(() => {
     if (!colorOpen) return
     const onDown = (e: MouseEvent) => {
@@ -60,8 +55,6 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
     saveTimer.current = setTimeout(flush, 400)
   }
 
-  // Remember the current selection so toolbar controls that steal focus
-  // (typing a size, picking a color) can still apply to it.
   function saveSelection() {
     const sel = window.getSelection()
     if (sel && sel.rangeCount && ref.current?.contains(sel.anchorNode)) {
@@ -84,8 +77,6 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
     scheduleSave()
   }
 
-  // execCommand('fontSize') only supports 1–7, so apply an arbitrary px size by
-  // tagging the selection then rewriting the generated <font> elements.
   function applyFontSize(px: string) {
     const size = parseInt(px, 10)
     if (!size || size < 1) return

@@ -1,12 +1,5 @@
 import crypto from 'node:crypto'
 
-// AES-256-GCM encrypt/decrypt for secrets stored at rest (e.g. a user's Azure
-// DevOps PAT). The key is derived from TFS_ENC_KEY (preferred) or, as a
-// fallback, CLERK_SECRET_KEY — both are server-only env vars. Files prefixed
-// with `_` are not treated as routes by Vercel.
-//
-// Node's Buffer/Uint8Array typings vary across @types/node versions, so every
-// value handed to the crypto APIs is normalised to a plain Uint8Array.
 function bytes(input: Uint8Array): Uint8Array {
   return Uint8Array.from(input)
 }
@@ -17,7 +10,6 @@ function getKey(): Uint8Array {
   return bytes(crypto.createHash('sha256').update(secret).digest())
 }
 
-// Returns "iv.tag.ciphertext", all base64.
 export function encryptSecret(plain: string): string {
   const iv = crypto.randomBytes(12)
   const cipher = crypto.createCipheriv('aes-256-gcm', getKey(), bytes(iv))

@@ -3,10 +3,6 @@ import { getUserId } from './_auth.js'
 import { getKv, withPrefix } from './_kv.js'
 import { decryptSecret } from './_crypto.js'
 
-// Looks up an Azure DevOps (dev.azure.com) work item by ID and returns its
-// id, title and iteration. The PAT is per-user (encrypted at rest via
-// /api/tfs-settings) and never exposed to the browser. As a migration aid the
-// owner may keep using AZDO_PAT/AZDO_ORG from the environment.
 type StoredTfs = { org: string; pat: string }
 
 async function resolveCredentials(
@@ -19,11 +15,11 @@ async function resolveCredentials(
       try {
         return { pat: decryptSecret(stored.pat), org: stored.org }
       } catch {
-        /* key rotated or corrupt — fall through */
+        
       }
     }
   }
-  // Owner-only fallback to the shared env token (never used by other users).
+
   const owner = process.env.OWNER_USER_ID
   if (owner && userId === owner && process.env.AZDO_PAT) {
     return { pat: process.env.AZDO_PAT, org: process.env.AZDO_ORG || '' }

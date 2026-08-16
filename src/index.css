@@ -1,5 +1,5 @@
 :root {
-  /* Core dark palette */
+  
   --bg-0: #0a0e14;
   --bg-1: #11161f;
   --bg-2: #161c27;
@@ -9,7 +9,6 @@
   --text-1: #aab3c2;
   --text-2: #6b7585;
 
-  /* Single subtle accent used across all sections */
   --accent: #5b8db8;
   --accent-tfs: var(--accent);
   --accent-github: var(--accent);
@@ -66,7 +65,6 @@ button {
   font-family: inherit;
 }
 
-/* Clerk sign-in screen + setup notice */
 .auth-screen,
 .setup-notice {
   min-height: 100vh;

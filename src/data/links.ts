@@ -1,16 +1,9 @@
-// ---------------------------------------------------------------------------
-// Central configuration + sample/demo content for NEW users.
-// Nothing here is company-specific — it just shows how each tab can be
-// organised. Users edit/delete these or click "Clear sample data" to start fresh.
-// ---------------------------------------------------------------------------
-
 export interface LinkItem {
   title: string
   url: string
   description?: string
 }
 
-// 1. TFS ---------------------------------------------------------------------
 export const tfsLinks = {
   boards: {
     title: 'Sprint Board',
@@ -29,8 +22,6 @@ export const tfsLinks = {
   ] as LinkItem[],
 }
 
-// 2. GitHub ------------------------------------------------------------------
-// Sample repos spread across the first two columns; the rest start empty.
 export const githubColumns: LinkItem[][] = [
   [
     { title: 'my-portfolio', url: 'https://github.com', description: 'Personal website source' },
@@ -46,12 +37,10 @@ export const githubColumns: LinkItem[][] = [
   [],
 ]
 
-// Default collapsible parent sections per column for the GitHub page.
 export const githubSectionColumns: { title: string; items: LinkItem[] }[][] = githubColumns.map(
   (items, i) => [{ title: ['My Repos', 'Team', 'Tools', 'Infra', 'Docs', 'More'][i] ?? `Section ${i + 1}`, items }],
 )
 
-// 3. Infra -------------------------------------------------------------------
 export const infraLinks = {
   aws: [
     { title: 'AWS Console', url: 'https://console.aws.amazon.com', description: 'Cloud resources' },
@@ -64,7 +53,6 @@ export const infraLinks = {
   ] as LinkItem[],
 }
 
-// 4. Important Portals -------------------------------------------------------
 export const portalLinks: LinkItem[] = [
   { title: 'Office 365', url: 'https://www.office.com', description: 'Mail, calendar & docs' },
   { title: 'HR / Time', url: 'https://www.workday.com', description: 'Leave & timesheets' },

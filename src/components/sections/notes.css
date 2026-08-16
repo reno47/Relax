@@ -9,7 +9,6 @@
   align-items: start;
 }
 
-/* Sidebar: sections + pages ------------------------------------------- */
 .notes-sidebar {
   display: flex;
   flex-direction: column;
@@ -186,7 +185,6 @@
   background: var(--bg-2);
 }
 
-/* Main: page view ----------------------------------------------------- */
 .notes-main {
   min-height: 420px;
 }
@@ -259,7 +257,6 @@
   border-color: var(--section-accent, var(--accent));
 }
 
-/* Editor -------------------------------------------------------------- */
 .note-editor {
   border: 1px solid var(--border);
   border-radius: var(--radius);

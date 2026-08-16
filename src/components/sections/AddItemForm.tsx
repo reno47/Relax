@@ -9,12 +9,10 @@ export interface NewItem {
 interface AddItemFormProps {
   label?: string
   onAdd: (item: NewItem) => void
-  /** Optional extra field (e.g. a column/section selector) rendered in the form. */
+  
   extra?: ReactNode
 }
 
-// Reusable "+ Add" button that expands into an inline form for a title + URL
-// (and optional description). Used across the TFS, GitHub, Infra and Portals tabs.
 export function AddItemForm({ label = '+ Add', onAdd, extra }: AddItemFormProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')

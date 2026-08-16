@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { hydrate, schedulePush, subscribe } from '../lib/syncStore'
 
-// localStorage-backed state that also syncs to the server (`/api/state`) so
-// the data is available across sessions and devices when hosted on Vercel.
 export function useLocalStorage<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -13,7 +11,6 @@ export function useLocalStorage<T>(key: string, initial: T) {
     }
   })
 
-  // Hydrate from the server once, and adopt server updates for this key.
   useEffect(() => {
     let active = true
     const unsub = subscribe(key, (v) => {
@@ -26,13 +23,12 @@ export function useLocalStorage<T>(key: string, initial: T) {
     }
   }, [key])
 
-  // Persist locally on every change and push to the server (debounced).
   const first = useRef(true)
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(value))
     } catch {
-      /* ignore quota / serialization errors */
+      
     }
     if (first.current) {
       first.current = false

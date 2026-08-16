@@ -7,7 +7,6 @@ interface ItemEditFormProps {
   onCancel: () => void
 }
 
-// Inline form to edit an existing link's title / URL / description.
 export function ItemEditForm({ item, onSave, onCancel }: ItemEditFormProps) {
   const [title, setTitle] = useState(item.title)
   const [url, setUrl] = useState(item.url)

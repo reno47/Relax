@@ -15,8 +15,7 @@ const SECTION_KEY = 'dashboard.activeSection'
 export default function App() {
   const { signOut } = useClerk()
   const { getToken } = useAuth()
-  // Register early (during render) so section effects that call the sync store
-  // already have a token provider before they hydrate.
+
   setAuthTokenGetter(() => getToken())
 
   const [active, setActive] = useState<SectionId>(() => {

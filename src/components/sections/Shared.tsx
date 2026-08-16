@@ -60,7 +60,6 @@ export function LinkRow({ item }: { item: LinkItem }) {
   )
 }
 
-// A card with edit (✎) and delete (×) buttons — used for user-managed items.
 export function RemovableCard({
   item,
   onRemove,

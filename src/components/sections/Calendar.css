@@ -9,7 +9,6 @@
   align-items: start;
 }
 
-/* ---------------- Sidebar ---------------- */
 .cal-sidebar {
   background: var(--bg-1);
   border: 1px solid var(--border);
@@ -117,7 +116,6 @@
   padding: 10px 12px 10px 10px;
 }
 
-/* New category form */
 .add-category {
   border-top: 1px dashed var(--border);
   padding-top: 16px;
@@ -206,7 +204,6 @@
   cursor: not-allowed;
 }
 
-/* Backup / restore */
 .backup-section {
   border-top: 1px dashed var(--border);
   margin-top: 18px;
@@ -236,7 +233,6 @@
   border-color: var(--accent);
 }
 
-/* ---------------- Main grid ---------------- */
 .cal-main {
   background: var(--bg-1);
   border: 1px solid var(--border);
@@ -436,7 +432,6 @@
   text-overflow: ellipsis;
 }
 
-/* Legend */
 .cal-legend {
   display: flex;
   flex-wrap: wrap;

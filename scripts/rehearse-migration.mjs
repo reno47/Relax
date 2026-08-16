@@ -1,19 +1,3 @@
-// Rehearse the Phase 3 owner migration on STAGING without risking production.
-//
-// It copies the current PRODUCTION global blob (unprefixed `dashboard:state` /
-// `calendar:data`) into the STAGING namespace (`staging:dashboard:state` /
-// `staging:calendar:data`). Then, when the owner signs in on staging, the app's
-// migrateOwnerIfNeeded() copies those into `staging:user:{owner}:state|calendar`
-// — exactly mirroring what will happen in production at release.
-//
-// Reads are on the prod (unprefixed) keys; writes are ONLY to `staging:` keys,
-// so production data is never modified.
-//
-// Usage (PowerShell):
-//   $env:KV_REST_API_URL = "https://<db>.upstash.io"
-//   $env:KV_REST_API_TOKEN = "<token>"
-//   npm run rehearse:migration            # copy prod global blob -> staging namespace
-//   npm run rehearse:migration -- --reset # remove the staging global copies
 import { createClient } from '@vercel/kv'
 
 const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL

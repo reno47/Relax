@@ -7,7 +7,7 @@ import { ItemEditForm } from './ItemEditForm'
 import { Hero } from './Shared'
 
 const SECTIONS_KEY = 'dashboard.github.sections'
-// Legacy keys — read once to migrate existing users into the sections model.
+
 const LAYOUT_KEY = 'dashboard.github.layout'
 const ORDER_KEY = 'dashboard.github.order'
 const CUSTOM_KEY = 'dashboard.github.custom'
@@ -39,7 +39,6 @@ function readJSON<T>(key: string, fallback: T): T {
   }
 }
 
-// Rebuild a flat layout (items per column) from the legacy url-based keys.
 function buildLegacyFlat(): LinkItem[][] {
   type CustomItem = LinkItem & { col: number }
   const custom = readJSON<CustomItem[]>(CUSTOM_KEY, [])
@@ -87,7 +86,6 @@ function buildLegacyFlat(): LinkItem[][] {
   return cols
 }
 
-// Wrap a flat column layout into one named parent section per column.
 function wrapFlat(flat: LinkItem[][]): Columns {
   return flat.map((items, ci) =>
     items.length ? [{ id: newId(), title: DEFAULT_TITLES[ci] ?? `Section ${ci + 1}`, items }] : [],
@@ -135,8 +133,6 @@ export default function GitHub() {
   const secDragRef = useRef<{ col: number; sec: number } | null>(null)
   const readyRef = useRef(false)
 
-  // Persist and sync — gated until hydrate finishes so we never write the new
-  // sections key before checking the server for existing (legacy) data.
   useEffect(() => {
     if (!readyRef.current) return
     localStorage.setItem(SECTIONS_KEY, JSON.stringify(columns))
@@ -548,7 +544,6 @@ export default function GitHub() {
                           )
                         })}
 
-                        {/* Drop target for the end of this section. */}
                         <div
                           className={`section-dropzone ${
                             hint?.col === ci && hint.sec === si && hint.idx === sec.items.length
@@ -618,4 +613,3 @@ export default function GitHub() {
     </section>
   )
 }
-

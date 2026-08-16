@@ -10,7 +10,6 @@ interface ConfirmDialogProps {
   onCancel: () => void
 }
 
-// Themed replacement for window.confirm used for destructive actions.
 export function ConfirmDialog({
   title,
   message,

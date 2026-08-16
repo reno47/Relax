@@ -26,7 +26,6 @@ export default function TFS() {
     setWorkitems((prev) => prev.filter((w) => w.id !== itemId))
   }
 
-  // Group the cards by their iteration leaf (e.g. "26-PI4 S2").
   const groups = useMemo(() => {
     const map = new Map<string, WorkItem[]>()
     for (const w of workitems) {

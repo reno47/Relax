@@ -16,6 +16,9 @@ dist-ssr
 # Local calendar data (personal, recreated at runtime)
 /data/
 
+# KV backup dumps (contain user data)
+/backups/
+
 # Local planning notes (not part of the product)
 plan.md
 
