@@ -169,8 +169,9 @@ function tfsSettingsApiPlugin(): Plugin {
             const areaVal = (area ?? '').trim()
             if (!pat?.trim()) return send(400, { error: 'Provide a Personal Access Token.' })
             if (!orgVal) return send(400, { error: 'Provide your Azure DevOps organization.' })
-            writeUserJson(userId, 'tfs.json', JSON.stringify({ org: orgVal, pat: pat.trim(), ...(areaVal ? { area: areaVal } : {}) }))
-            send(200, { configured: true, org: orgVal, area: areaVal || null })
+            if (!areaVal) return send(400, { error: 'Provide an area path.' })
+            writeUserJson(userId, 'tfs.json', JSON.stringify({ org: orgVal, pat: pat.trim(), area: areaVal }))
+            send(200, { configured: true, org: orgVal, area: areaVal })
           } catch {
             send(400, { error: 'Invalid request.' })
           }

@@ -155,17 +155,21 @@ export function TfsSettings({ onConfiguredChange }: Readonly<TfsSettingsProps>) 
         />
       </label>
       <label className="tfs-field">
-        <span>Area path (optional)</span>
+        <span>Area path</span>
         <input
           value={area}
           onChange={(e) => setArea(e.target.value)}
-          placeholder="e.g. Project\\Area — limits assigned items to this area and below"
+          placeholder="e.g. Project\\Area — assigned items are scoped to this area and below"
           autoComplete="off"
         />
       </label>
       {error && <div className="tfs-error">{error}</div>}
       <div className="tfs-settings-actions">
-        <button type="submit" className="btn-primary" disabled={saving || !org.trim() || !pat.trim()}>
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={saving || !org.trim() || !pat.trim() || !area.trim()}
+        >
           {saving ? 'Saving…' : 'Connect'}
         </button>
         {status.configured && (

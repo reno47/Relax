@@ -36,12 +36,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(400).json({ error: 'Provide your Azure DevOps organization.' })
       return
     }
+    if (!areaVal) {
+      res.status(400).json({ error: 'Provide an area path.' })
+      return
+    }
     await kv.set(key, {
       org: orgVal,
       pat: encryptSecret(pat.trim()),
-      ...(areaVal ? { area: areaVal } : {}),
+      area: areaVal,
     } satisfies StoredTfs)
-    res.status(200).json({ configured: true, org: orgVal, area: areaVal || null })
+    res.status(200).json({ configured: true, org: orgVal, area: areaVal })
     return
   }
 
