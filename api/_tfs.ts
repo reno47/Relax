@@ -9,7 +9,8 @@ export const WI_FIELDS =
   'System.Id,System.Title,System.IterationPath,System.WorkItemType,System.State'
 
 export function basicAuth(pat: string): string {
-  return `Basic ${Buffer.from(`:${pat}`).toString('base64')}`
+  const token = Buffer.from(`:${pat}`).toString('base64')
+  return `Basic ${token}`
 }
 
 function credsFromEnv(userId: string): TfsCreds | null {

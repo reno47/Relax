@@ -1,10 +1,10 @@
 const WI_FIELDS =
   'System.Id,System.Title,System.IterationPath,System.WorkItemType,System.State,System.TeamProject'
-const WANTED = [
+const WANTED = new Set([
   'Microsoft.RequirementCategory',
   'Microsoft.FeatureCategory',
   'Microsoft.BugCategory',
-]
+])
 
 export type AssignedItem = {
   id: number
@@ -18,21 +18,7 @@ export type AssignedItem = {
 
 export type IterationOption = { path: string; name: string; order: number }
 
-export type AssignedResult = {
-  items: AssignedItem[]
-  iterations: IterationOption[]
-  debug?: {
-    org: string
-    project: string
-    wiqlStatus: number
-    area: string | null
-    ids: number
-    details: number
-    projects: string[]
-    types: string[]
-    kept: number
-  }
-}
+export type AssignedResult = { items: AssignedItem[]; iterations: IterationOption[] }
 
 type NodeInfo = { order: number; startDate?: string }
 
@@ -41,7 +27,8 @@ type RawNode = { path?: string; attributes?: { startDate?: string }; children?: 
 type RawItem = { id: number; fields?: Record<string, string> }
 
 function basic(pat: string): string {
-  return `Basic ${Buffer.from(`:${pat}`).toString('base64')}`
+  const token = Buffer.from(`:${pat}`).toString('base64')
+  return `Basic ${token}`
 }
 
 function orgBase(org: string): string {
@@ -52,23 +39,18 @@ function projectBase(org: string, project: string): string {
   return `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}/_apis/`
 }
 
-async function assignedIds(
-  org: string,
-  pat: string,
-  area?: string,
-  project?: string,
-): Promise<{ ids: number[]; status: number }> {
+async function assignedIds(org: string, pat: string, area?: string, project?: string): Promise<number[]> {
   const base = project ? projectBase(org, project) : orgBase(org)
-  const areaClause = area ? ` AND [System.AreaPath] UNDER '${area.replace(/'/g, "''")}'` : ''
+  const areaClause = area ? ` AND [System.AreaPath] UNDER '${area.replaceAll("'", "''")}'` : ''
   const query = `SELECT [System.Id] FROM WorkItems WHERE [System.AssignedTo] = @Me${areaClause}`
   const r = await fetch(`${base}wit/wiql?api-version=7.0`, {
     method: 'POST',
     headers: { Authorization: basic(pat), 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
   })
-  if (!r.ok) return { ids: [], status: r.status }
+  if (!r.ok) return []
   const data = (await r.json()) as { workItems?: { id: number }[] }
-  return { ids: (data.workItems ?? []).map((w) => w.id), status: r.status }
+  return (data.workItems ?? []).map((w) => w.id)
 }
 
 async function fetchDetails(org: string, pat: string, ids: number[]): Promise<RawItem[]> {
@@ -93,7 +75,7 @@ async function projectTypes(org: string, project: string, pat: string): Promise<
     value?: { referenceName: string; workItemTypes?: { name?: string }[] }[]
   }
   for (const c of data.value ?? []) {
-    if (!WANTED.includes(c.referenceName)) continue
+    if (!WANTED.has(c.referenceName)) continue
     for (const t of c.workItemTypes ?? []) if (t.name) set.add(t.name)
   }
   return set
@@ -126,7 +108,7 @@ async function mergeProjectIterations(
 
 function leaf(p: string): string {
   const parts = p.split(/[\\/]/).filter(Boolean)
-  return parts.length ? parts[parts.length - 1] : p
+  return parts.at(-1) ?? p
 }
 
 function compareIterations(a: NodeInfo | undefined, b: NodeInfo | undefined): number {
@@ -142,13 +124,10 @@ function rankIterations(paths: string[], order: Map<string, NodeInfo>): Map<stri
 }
 
 export async function fetchAssigned(org: string, pat: string, area?: string): Promise<AssignedResult> {
-  const project = area ? area.split(/[\\/]/).filter(Boolean)[0] ?? '' : ''
-  const { ids, status: wiqlStatus } = await assignedIds(org, pat, area, project)
+  const project = area ? area.split(/[\\/]/).find(Boolean) ?? '' : ''
+  const ids = await assignedIds(org, pat, area, project)
   const details = await fetchDetails(org, pat, ids)
-  const baseDebug = { org, project, wiqlStatus, area: area ?? null, ids: ids.length, details: details.length }
-  if (!details.length) {
-    return { items: [], iterations: [], debug: { ...baseDebug, projects: [], types: [], kept: 0 } }
-  }
+  if (!details.length) return { items: [], iterations: [] }
 
   const projects = Array.from(
     new Set(details.map((d) => d.fields?.['System.TeamProject'] ?? '').filter(Boolean)),
@@ -191,12 +170,5 @@ export async function fetchAssigned(org: string, pat: string, area?: string): Pr
     .sort((a, b) => a[1] - b[1])
     .map(([p, orderIdx]) => ({ path: p, name: leaf(p), order: orderIdx }))
 
-  const debug = {
-    ...baseDebug,
-    projects,
-    types: Array.from(new Set(Array.from(wantedByProject.values()).flatMap((s) => Array.from(s)))),
-    kept: kept.length,
-  }
-
-  return { items, iterations, debug }
+  return { items, iterations }
 }
