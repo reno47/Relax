@@ -199,7 +199,9 @@ async function devAssigned(org: string, pat: string, area?: string): Promise<Dev
   const wanted = ['Microsoft.RequirementCategory', 'Microsoft.FeatureCategory', 'Microsoft.BugCategory']
 
   const areaClause = area ? ` AND [System.AreaPath] UNDER '${area.replace(/'/g, "''")}'` : ''
-  const wiql = await fetch(`${orgApi}wit/wiql?api-version=7.0`, {
+  const project = area ? area.split(/[\\/]/).filter(Boolean)[0] ?? '' : ''
+  const wiqlBase = project ? projApi(project) : orgApi
+  const wiql = await fetch(`${wiqlBase}wit/wiql?api-version=7.0`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: `SELECT [System.Id] FROM WorkItems WHERE [System.AssignedTo] = @Me${areaClause}` }),

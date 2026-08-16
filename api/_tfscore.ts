@@ -22,6 +22,8 @@ export type AssignedResult = {
   items: AssignedItem[]
   iterations: IterationOption[]
   debug?: {
+    org: string
+    project: string
     wiqlStatus: number
     area: string | null
     ids: number
@@ -50,10 +52,16 @@ function projectBase(org: string, project: string): string {
   return `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}/_apis/`
 }
 
-async function assignedIds(org: string, pat: string, area?: string): Promise<{ ids: number[]; status: number }> {
+async function assignedIds(
+  org: string,
+  pat: string,
+  area?: string,
+  project?: string,
+): Promise<{ ids: number[]; status: number }> {
+  const base = project ? projectBase(org, project) : orgBase(org)
   const areaClause = area ? ` AND [System.AreaPath] UNDER '${area.replace(/'/g, "''")}'` : ''
   const query = `SELECT [System.Id] FROM WorkItems WHERE [System.AssignedTo] = @Me${areaClause}`
-  const r = await fetch(`${orgBase(org)}wit/wiql?api-version=7.0`, {
+  const r = await fetch(`${base}wit/wiql?api-version=7.0`, {
     method: 'POST',
     headers: { Authorization: basic(pat), 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
@@ -134,9 +142,10 @@ function rankIterations(paths: string[], order: Map<string, NodeInfo>): Map<stri
 }
 
 export async function fetchAssigned(org: string, pat: string, area?: string): Promise<AssignedResult> {
-  const { ids, status: wiqlStatus } = await assignedIds(org, pat, area)
+  const project = area ? area.split(/[\\/]/).filter(Boolean)[0] ?? '' : ''
+  const { ids, status: wiqlStatus } = await assignedIds(org, pat, area, project)
   const details = await fetchDetails(org, pat, ids)
-  const baseDebug = { wiqlStatus, area: area ?? null, ids: ids.length, details: details.length }
+  const baseDebug = { org, project, wiqlStatus, area: area ?? null, ids: ids.length, details: details.length }
   if (!details.length) {
     return { items: [], iterations: [], debug: { ...baseDebug, projects: [], types: [], kept: 0 } }
   }
