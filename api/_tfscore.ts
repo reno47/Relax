@@ -18,7 +18,11 @@ export type AssignedItem = {
 
 export type IterationOption = { path: string; name: string; order: number }
 
-export type AssignedResult = { items: AssignedItem[]; iterations: IterationOption[] }
+export type AssignedResult = {
+  items: AssignedItem[]
+  iterations: IterationOption[]
+  debug?: { ids: number; projects: string[]; types: string[]; kept: number }
+}
 
 type NodeInfo = { order: number; startDate?: string }
 
@@ -167,5 +171,12 @@ export async function fetchAssigned(org: string, pat: string, area?: string): Pr
     .sort((a, b) => a[1] - b[1])
     .map(([p, orderIdx]) => ({ path: p, name: leaf(p), order: orderIdx }))
 
-  return { items, iterations }
+  const debug = {
+    ids: ids.length,
+    projects,
+    types: Array.from(new Set(Array.from(wantedByProject.values()).flatMap((s) => Array.from(s)))),
+    kept: kept.length,
+  }
+
+  return { items, iterations, debug }
 }
