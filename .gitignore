@@ -26,6 +26,8 @@ plan.md
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+/api/*.js
+/api/*.d.ts
 
 # Editor directories and files
 .vscode/*
