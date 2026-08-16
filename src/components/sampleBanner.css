@@ -33,14 +33,14 @@
 }
 
 .sample-clear {
-  border: 1px solid #7a2a38;
-  background: #5a2330;
-  color: #ff8a9a;
+  border: 1px solid var(--danger-strong-hover);
+  background: var(--danger-strong);
+  color: var(--danger-text);
 }
 
 .sample-clear:hover {
-  background: #7a2a38;
-  color: #ffd0d7;
+  background: var(--danger-strong-hover);
+  color: var(--danger-text-strong);
 }
 
 .sample-dismiss {

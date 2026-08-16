@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SignedIn, SignedOut, SignIn, useAuth, useClerk } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, SignIn, useAuth } from '@clerk/clerk-react'
 import Navbar, { type SectionId } from './components/Navbar'
 import TFS from './components/sections/TFS'
 import GitHub from './components/sections/GitHub'
@@ -13,7 +13,6 @@ import { setAuthTokenGetter } from './lib/syncStore'
 const SECTION_KEY = 'dashboard.activeSection'
 
 export default function App() {
-  const { signOut } = useClerk()
   const { getToken } = useAuth()
 
   setAuthTokenGetter(() => getToken())
@@ -37,7 +36,7 @@ export default function App() {
       </SignedOut>
       <SignedIn>
         <div className="app">
-          <Navbar active={active} onChange={changeSection} onLogout={() => signOut()} />
+          <Navbar active={active} onChange={changeSection} />
           <SampleBanner />
           <main>
             {active === 'tfs' && <TFS />}

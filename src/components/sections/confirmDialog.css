@@ -17,7 +17,7 @@
   border-radius: var(--radius);
   background: var(--bg-1);
   border: 1px solid var(--border);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--modal-shadow);
   animation: confirm-pop 0.18s ease;
 }
 
@@ -63,9 +63,9 @@
 .confirm-danger {
   padding: 8px 18px;
   border-radius: 8px;
-  border: 1px solid #7a2a38;
-  background: #5a2330;
-  color: #ff8a9a;
+  border: 1px solid var(--danger-strong-hover);
+  background: var(--danger-strong);
+  color: var(--danger-text);
   font-size: 0.88rem;
   font-family: inherit;
   cursor: pointer;
@@ -73,6 +73,6 @@
 }
 
 .confirm-danger:hover {
-  background: #7a2a38;
-  color: #ffd0d7;
+  background: var(--danger-strong-hover);
+  color: var(--danger-text-strong);
 }

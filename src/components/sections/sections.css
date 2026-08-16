@@ -587,7 +587,7 @@
   border-radius: 10px;
   background: var(--bg-1);
   border: 1px solid var(--border);
-  border-left: 3px solid #3fb950;
+  border-left: 3px solid var(--success);
   max-width: 560px;
 }
 
@@ -595,8 +595,8 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #3fb950;
-  box-shadow: 0 0 0 3px color-mix(in srgb, #3fb950 25%, transparent);
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 25%, transparent);
 }
 
 .tfs-conn-text {
@@ -625,7 +625,7 @@
 }
 
 .tfs-link-btn.danger {
-  color: #ff8a9a;
+  color: var(--danger-text);
 }
 
 .tfs-link-btn:disabled {
@@ -638,9 +638,9 @@
   margin-top: 12px;
   padding: 10px 14px;
   border-radius: 8px;
-  background: #2b1a22;
-  border: 1px solid #5a2330;
-  color: #ff8a9a;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-strong);
+  color: var(--danger-text);
   font-size: 0.85rem;
 }
 
@@ -739,31 +739,31 @@
 
 .wi-story {
   background: rgba(79, 156, 255, 0.16);
-  color: #7fb4ff;
+  color: var(--wi-blue);
   border-color: rgba(79, 156, 255, 0.4);
 }
 
 .wi-bug {
   background: rgba(255, 92, 92, 0.16);
-  color: #ff8a8a;
+  color: var(--wi-red);
   border-color: rgba(255, 92, 92, 0.4);
 }
 
 .wi-feature {
   background: rgba(163, 113, 247, 0.16);
-  color: #c4a0ff;
+  color: var(--wi-purple);
   border-color: rgba(163, 113, 247, 0.4);
 }
 
 .wi-epic {
   background: rgba(255, 159, 67, 0.16);
-  color: #ffbe7a;
+  color: var(--wi-orange);
   border-color: rgba(255, 159, 67, 0.4);
 }
 
 .wi-task {
   background: rgba(46, 204, 113, 0.16);
-  color: #7fe9a9;
+  color: var(--success-text);
   border-color: rgba(46, 204, 113, 0.4);
 }
 
@@ -814,8 +814,8 @@
 }
 
 .wi-remove:hover {
-  background: #5a2330;
-  color: #ff8a9a;
+  background: var(--danger-strong);
+  color: var(--danger-text);
 }
 
 .card-wrap {
@@ -859,13 +859,13 @@
 }
 
 .card-edit:hover {
-  background: #23384d;
-  color: #9ec3e4;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .card-remove:hover {
-  background: #5a2330;
-  color: #ff8a9a;
+  background: var(--danger-strong);
+  color: var(--danger-text);
 }
 
 .add-toggle {
@@ -1019,9 +1019,9 @@
 }
 
 .section-delete:hover {
-  background: #5a2330;
-  color: #ff8a9a;
-  border-color: #5a2330;
+  background: var(--danger-strong);
+  color: var(--danger-text);
+  border-color: var(--danger-strong);
 }
 
 .dnd-actions {
@@ -1073,8 +1073,8 @@
 }
 
 .dnd-add:hover {
-  background: #1f3a2b;
-  color: #7fe9a9;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .dnd-remove {
@@ -1082,11 +1082,11 @@
 }
 
 .dnd-edit:hover {
-  background: #23384d;
-  color: #9ec3e4;
+  background: var(--info-bg);
+  color: var(--info-text);
 }
 
 .dnd-remove:hover {
-  background: #5a2330;
-  color: #ff8a9a;
+  background: var(--danger-strong);
+  color: var(--danger-text);
 }

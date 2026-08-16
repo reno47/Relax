@@ -108,8 +108,8 @@
 }
 
 .notes-mini.danger:hover {
-  background: #5a2330;
-  color: #ff8a9a;
+  background: var(--danger-strong);
+  color: var(--danger-text);
 }
 
 .notes-pages {
@@ -358,7 +358,7 @@
   border-radius: 8px;
   background: var(--bg-1);
   border: 1px solid var(--border);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--popover-shadow);
 }
 
 .note-size-opt {
@@ -412,7 +412,7 @@
   border-radius: 10px;
   background: var(--bg-1);
   border: 1px solid var(--border);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--popover-shadow);
 }
 
 .note-swatches {

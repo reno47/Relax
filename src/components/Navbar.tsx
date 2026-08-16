@@ -5,6 +5,7 @@ import infraIcon from '../assets/icons/infra.svg'
 import portalsIcon from '../assets/icons/portals.svg'
 import calendarIcon from '../assets/icons/calendar.svg'
 import notesIcon from '../assets/icons/notes.svg'
+import { UserMenu } from './UserMenu'
 
 export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar' | 'notes'
 
@@ -27,10 +28,9 @@ const NAV_ITEMS: NavItem[] = [
 interface NavbarProps {
   active: SectionId
   onChange: (id: SectionId) => void
-  onLogout: () => void
 }
 
-export default function Navbar({ active, onChange, onLogout }: NavbarProps) {
+export default function Navbar({ active, onChange }: NavbarProps) {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -53,9 +53,7 @@ export default function Navbar({ active, onChange, onLogout }: NavbarProps) {
           </li>
         ))}
       </ul>
-      <button className="logout-btn" onClick={onLogout}>
-        Logout
-      </button>
+      <UserMenu />
     </nav>
   )
 }

@@ -1,0 +1,128 @@
+.user-menu {
+  position: relative;
+  margin-left: auto;
+}
+
+.user-menu-trigger {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.user-menu-trigger:hover {
+  background: var(--bg-3);
+  border-color: var(--accent);
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: 60;
+}
+
+.user-menu-email {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--text-1);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-0);
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-menu-item:hover {
+  background: var(--bg-2);
+}
+
+.user-menu-theme {
+  position: relative;
+}
+
+.user-menu-caret {
+  color: var(--text-2);
+}
+
+.user-menu-subpanel {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 8px);
+  min-width: 130px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.user-menu-sub-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-0);
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-menu-sub-item:hover {
+  background: var(--bg-2);
+}
+
+.user-menu-sub-item.active {
+  color: var(--accent);
+}
+
+.user-menu-check {
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .user-menu {
+    margin-left: 0;
+  }
+  .user-menu-subpanel {
+    right: 0;
+    top: calc(100% + 8px);
+  }
+}
