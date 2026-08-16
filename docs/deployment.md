@@ -29,8 +29,11 @@ project's **Preview** environment. Environments are distinguished purely by
 | Environment | Vercel env | Branch/trigger | Database namespace | Clerk keys |
 |---|---|---|---|---|
 | **Local** | — | your machine | JSON files in `data/users/` | dev instance |
-| **Staging** | **Preview** | push to `productization` or `feature/**` | `staging:` key prefix (same Upstash DB) | dev instance |
-| **Production** | **Production** | publishing a GitHub **Release** | no prefix (same Upstash DB) | dev/live instance |
+| **Staging** | **Preview** | push/merge to the **`staging`** branch | `staging:` key prefix (same Upstash DB) | dev instance |
+| **Production** | **Production** | publishing a GitHub **Release** (from `main`) | no prefix (same Upstash DB) | dev/live instance |
+
+`staging` and `main` are **long-lived, protected** branches. Contributors never
+commit to them directly — see [Branching model](#5-branching--promotion-model).
 
 **Key isolation:** the serverless code prefixes every KV key with
 `process.env.KV_KEY_PREFIX` (`api/_kv.ts → withPrefix`). Preview sets
@@ -54,14 +57,14 @@ One workflow, two jobs, each gated by the trigger:
 ```yaml
 on:
   push:
-    branches: [productization, 'feature/**']   # → staging
+    branches: [staging]     # → staging deploy
   release:
-    types: [published]                          # → production
+    types: [published]      # → production deploy
 ```
 
 ```mermaid
 flowchart LR
-  A["git push<br/>feature/** or productization"] --> S["staging job"]
+  A["merge PR → staging"] --> S["staging job"]
   R["Publish GitHub Release"] --> P["production job"]
 
   subgraph S["staging job (Preview)"]
@@ -110,25 +113,67 @@ environment.
 
 ---
 
-## 5. Release process (production)
+## 5. Branching & promotion model
+
+Two protected long-lived branches, and short-lived work branches. Nobody pushes
+directly to `staging` or `main` — everything goes through reviewed PRs.
 
 ```mermaid
 flowchart LR
-  dev["local build + test"] --> br["feature/** branch"]
-  br -->|push| stg["staging (Preview) auto-deploy"]
-  stg -->|verify| merge["merge → main (fast-forward)"]
-  merge --> rel["Publish GitHub Release vX.Y.Z"]
-  rel --> prod["production job deploys"]
-  prod --> verify["verify prod"]
+  f["work branch<br/>(any name)"] -->|"PR + review"| stg["staging (protected)"]
+  stg -->|"auto deploy"| se["Staging URL"]
+  stg -->|"Promote workflow (manual, SHA-pinned PR)"| main["main (protected)"]
+  main -->|"Publish Release"| prod["Production"]
 ```
 
-Steps:
-1. Develop on a `feature/**` branch; push → staging auto-deploys; test on
-   `staging-personal-dashboard.vercel.app`.
-2. Merge the branch into `main` (fast-forward). **Merging does not deploy.**
-3. **Publish a GitHub Release** (tag `vX.Y.Z`, target `main`). This triggers the
-   production job.
-4. Verify production. Delete the merged feature branch.
+### Day-to-day flow
+1. **Branch** off `staging` (any name, e.g. `feature/x`), develop, `npm run build`,
+   test locally.
+2. Open a **PR into `staging`** → review + green build required → merge.
+3. Merging to `staging` **auto-deploys** to `staging-personal-dashboard.vercel.app`.
+   Verify there.
+4. **Promote:** run the **Promote staging → main** workflow
+   (`.github/workflows/promote.yml`) — Actions → *Run workflow* → paste the exact
+   **verified staging commit SHA**. Because direct pushes to `main` are blocked
+   for everyone, the workflow pins that SHA to a `promote-to-main` branch, opens
+   a **PR into `main`**, and enables **auto-merge** — so promotion still goes
+   through the protected path.
+   - Because you pass a **specific SHA**, a commit pushed to `staging` after you
+     verified is **not** promoted (no accidental promotion / race).
+   - The workflow refuses a SHA that isn't part of `staging` history.
+   - Approve the promotion PR (and let required checks pass) → it auto-merges.
+5. **Publish a GitHub Release** (tag `vX.Y.Z`, target `main`) → production deploys.
+6. Verify production.
+
+> Production is **not** auto-deployed when `main` changes — it deploys only on a
+> published **Release**. Promotion and release are two deliberate steps.
+
+### Branch protection (configure in GitHub → Settings → Branches)
+
+**`main` — locked down for everyone (no bypass):**
+- ✅ Require a pull request before merging (≥1 approval).
+- ✅ Require status checks to pass (the build).
+- ✅ Require linear history.
+- ✅ **Do not allow bypassing the above settings** (blocks direct pushes for
+  *all* users, including admins and the Actions bot).
+- ✅ Restrict who can push → leave the allow-list **empty**.
+
+**`staging` — protected, but the owner may push directly:**
+- ✅ Require a pull request before merging (≥1 approval) for contributors.
+- ✅ Require status checks to pass (the build).
+- ✅ Require linear history.
+- ✅ Restrict who can push → add **only the owner** to the allow-list (everyone
+   else must go through a PR).
+- ⛔ Leave **"Do not allow bypassing"** *unchecked* so the allow-listed owner can
+   still push directly.
+
+> Because `main` blocks direct pushes for everyone, the Promote workflow uses a
+> **PR + auto-merge** (not a direct push). Enable **Settings → General → Allow
+> auto-merge** and allow **rebase merges**. If `main` also requires a review, you
+> approve the promotion PR — a deliberate production gate.
+> Auto-merge runs when required checks pass; if you require status checks on
+> `main`, either drop that requirement (staging already validated the code) or
+> create the promotion PR with a PAT so its checks trigger.
 
 ### Versioning history (context)
 - `v1.0.0` baseline, `v2.0.0` feature set.
@@ -138,6 +183,8 @@ Steps:
 - `v3.0.2` removed the in-app feedback button.
 - `v3.1.0` profile menu + light theme.
 - `v3.2.0` TFS assigned work items + filters + state chips.
+- `v3.2.1` mandatory area path + docs.
+- `v3.2.2` rebrand to Relax.
 
 ---
 

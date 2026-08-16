@@ -140,21 +140,27 @@ console.log(r.status, await r.json());
 
 ## 7. Contribution workflow
 
-1. **Branch** off `main`:
-   ```powershell
-   git checkout main; git pull
-   git checkout -b feature/your-change
-   ```
-   Branch names starting with `feature/` auto-deploy to **staging** when pushed.
-2. **Make changes** following the conventions below.
-3. **Build locally:** `npm run build` (must pass).
-4. **Push** your branch → it deploys to `staging-personal-dashboard.vercel.app`
-   for review.
-5. **Open a PR** into `main` (or merge fast-forward if you have rights).
-6. Releases to production are done by publishing a **GitHub Release** — see
-   [deployment.md](./deployment.md#5-release-process-production).
+We use two protected long-lived branches — **`staging`** (integration) and
+**`main`** (production) — and short-lived work branches. You never push directly
+to `staging` or `main`.
 
-> Production deploys only on a published Release, never on a merge to `main`.
+1. **Branch** off `staging`:
+   ```powershell
+   git fetch origin
+   git checkout -b feature/your-change origin/staging
+   ```
+2. **Make changes** following the conventions below.
+3. **Build locally:** `npm run build` (must pass — it's a required check).
+4. **Open a Pull Request into `staging`.** After review + a green build, it's
+   merged.
+5. Merging to `staging` **auto-deploys** to
+   `staging-personal-dashboard.vercel.app` — verify your change there.
+6. A maintainer **promotes** the verified staging commit to `main` via the manual
+   **Promote staging → main** GitHub Action, then **publishes a Release** to
+   deploy production. See
+   [deployment.md](./deployment.md#5-branching--promotion-model).
+
+> Production deploys only on a published Release — never automatically on a merge.
 
 ### Coding conventions
 - **TypeScript:** prefer `type` over `interface`; never use `any`; co-locate

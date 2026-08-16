@@ -1,11 +1,11 @@
 name: Deploy
 
 # Single source of deployment truth (bypasses the Ignored Build Step, which
-# stays at `exit 0`). Push to `productization` → staging (Preview env, staging
-# Upstash). Publishing a Release → production (Production env, prod Upstash).
+# stays at `exit 0`). Push to `staging` → staging (Preview env, staging Upstash).
+# Publishing a Release → production (Production env, prod Upstash).
 on:
   push:
-    branches: [productization, 'feature/**']
+    branches: [staging]
   release:
     types: [published]
 

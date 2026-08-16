@@ -1,0 +1,50 @@
+name: Promote staging → main
+
+# Manual-only. Promotes a specific, already-verified `staging` commit to `main`
+# by opening (and auto-merging) a Pull Request. Direct pushes to `main` are
+# blocked for everyone, so promotion goes through the protected PR path.
+# Production is deployed separately by publishing a GitHub Release.
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Staging commit SHA to promote (from the verified staging deploy)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate the SHA belongs to staging
+        run: |
+          git fetch origin staging main
+          if ! git merge-base --is-ancestor "${{ inputs.sha }}" origin/staging; then
+            echo "::error::${{ inputs.sha }} is not part of origin/staging history."
+            exit 1
+          fi
+
+      - name: Create/refresh the promotion branch at the SHA
+        run: |
+          git branch -f promote-to-main "${{ inputs.sha }}"
+          git push --force origin promote-to-main
+
+      - name: Open or update the promotion PR and enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh pr view promote-to-main --json number >/dev/null 2>&1; then
+            gh pr create --base main --head promote-to-main \
+              --title "Promote staging → main (${{ inputs.sha }})" \
+              --body "Automated promotion of verified staging commit \`${{ inputs.sha }}\` to \`main\`. After this merges, publish a GitHub Release to deploy production."
+          fi
+          gh pr merge promote-to-main --auto --rebase
