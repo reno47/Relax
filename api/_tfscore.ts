@@ -21,7 +21,15 @@ export type IterationOption = { path: string; name: string; order: number }
 export type AssignedResult = {
   items: AssignedItem[]
   iterations: IterationOption[]
-  debug?: { ids: number; projects: string[]; types: string[]; kept: number }
+  debug?: {
+    wiqlStatus: number
+    area: string | null
+    ids: number
+    details: number
+    projects: string[]
+    types: string[]
+    kept: number
+  }
 }
 
 type NodeInfo = { order: number; startDate?: string }
@@ -42,7 +50,7 @@ function projectBase(org: string, project: string): string {
   return `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}/_apis/`
 }
 
-async function assignedIds(org: string, pat: string, area?: string): Promise<number[]> {
+async function assignedIds(org: string, pat: string, area?: string): Promise<{ ids: number[]; status: number }> {
   const areaClause = area ? ` AND [System.AreaPath] UNDER '${area.replace(/'/g, "''")}'` : ''
   const query = `SELECT [System.Id] FROM WorkItems WHERE [System.AssignedTo] = @Me${areaClause}`
   const r = await fetch(`${orgBase(org)}wit/wiql?api-version=7.0`, {
@@ -50,9 +58,9 @@ async function assignedIds(org: string, pat: string, area?: string): Promise<num
     headers: { Authorization: basic(pat), 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
   })
-  if (!r.ok) return []
+  if (!r.ok) return { ids: [], status: r.status }
   const data = (await r.json()) as { workItems?: { id: number }[] }
-  return (data.workItems ?? []).map((w) => w.id)
+  return { ids: (data.workItems ?? []).map((w) => w.id), status: r.status }
 }
 
 async function fetchDetails(org: string, pat: string, ids: number[]): Promise<RawItem[]> {
@@ -126,9 +134,12 @@ function rankIterations(paths: string[], order: Map<string, NodeInfo>): Map<stri
 }
 
 export async function fetchAssigned(org: string, pat: string, area?: string): Promise<AssignedResult> {
-  const ids = await assignedIds(org, pat, area)
+  const { ids, status: wiqlStatus } = await assignedIds(org, pat, area)
   const details = await fetchDetails(org, pat, ids)
-  if (!details.length) return { items: [], iterations: [] }
+  const baseDebug = { wiqlStatus, area: area ?? null, ids: ids.length, details: details.length }
+  if (!details.length) {
+    return { items: [], iterations: [], debug: { ...baseDebug, projects: [], types: [], kept: 0 } }
+  }
 
   const projects = Array.from(
     new Set(details.map((d) => d.fields?.['System.TeamProject'] ?? '').filter(Boolean)),
@@ -172,7 +183,7 @@ export async function fetchAssigned(org: string, pat: string, area?: string): Pr
     .map(([p, orderIdx]) => ({ path: p, name: leaf(p), order: orderIdx }))
 
   const debug = {
-    ids: ids.length,
+    ...baseDebug,
     projects,
     types: Array.from(new Set(Array.from(wantedByProject.values()).flatMap((s) => Array.from(s)))),
     kept: kept.length,
