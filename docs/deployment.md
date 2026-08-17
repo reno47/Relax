@@ -170,10 +170,6 @@ free — these are real server-side walls, not conventions.
 - **CI build check** ([.github/workflows/ci.yml](../.github/workflows/ci.yml)) —
   runs `npm run build` on every PR into `staging`/`main`; wire it as a required
   status check.
-- **Direct-push guard**
-  ([.github/workflows/guard-direct-push.yml](../.github/workflows/guard-direct-push.yml))
-  — opens a tracking issue if a push to `main`/`staging` slips in without a PR
-  reference (belt-and-suspenders now that the ruleset enforces PRs).
 
 > The Promote workflow opens a **PR + auto-merge** into `main` (rebase), so
 > promotion goes through the protected path. Enable **Settings → General → Allow
