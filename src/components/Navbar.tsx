@@ -35,7 +35,7 @@ export default function Navbar({ active, onChange }: NavbarProps) {
     <nav className="navbar">
       <div className="navbar-brand">
         <span className="brand-dot" />
-        Re<span className="brand-accent">lax</span>
+        <span className="brand-name">Re<span className="brand-accent">lax</span></span>
       </div>
       <ul className="navbar-items">
         {NAV_ITEMS.map((item) => (
