@@ -489,6 +489,12 @@
   margin: 8px 0;
 }
 
+.note-body a {
+  color: var(--accent-notes, #4f9cff);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .note-body ul,
 .note-body ol {
   padding-left: 22px;

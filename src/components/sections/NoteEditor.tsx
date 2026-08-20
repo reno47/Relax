@@ -5,6 +5,27 @@ interface NoteEditorProps {
   onChange: (html: string) => void
 }
 
+const URL_RE = /(https?:\/\/[^\s<>()]+[^\s<>().,;:!?'"]|www\.[^\s<>()]+[^\s<>().,;:!?'"])/gi
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+function linkifyToHtml(text: string): string {
+  let result = ''
+  let lastIndex = 0
+  for (const match of text.matchAll(URL_RE)) {
+    const url = match[0]
+    const start = match.index ?? 0
+    const href = url.startsWith('http') ? url : `https://${url}`
+    result += escapeHtml(text.slice(lastIndex, start))
+    result += `<a href="${escapeHtml(encodeURI(href))}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`
+    lastIndex = start + url.length
+  }
+  result += escapeHtml(text.slice(lastIndex))
+  return result.replace(/\n/g, '<br>')
+}
+
 const SIZE_PRESETS = ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24', '28', '36', '48', '72']
 
 const COLOR_PRESETS = [
@@ -94,19 +115,57 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
     exec('foreColor', color)
   }
 
+  function insertLink() {
+    const url = window.prompt('Enter URL')
+    if (!url) return
+    const href = /^https?:\/\//i.test(url) ? url : `https://${url}`
+    restoreSelection()
+    const sel = window.getSelection()
+    if (sel && sel.isCollapsed) {
+      const safe = escapeHtml(encodeURI(href))
+      document.execCommand('insertHTML', false, `<a href="${safe}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`)
+    } else {
+      document.execCommand('createLink', false, href)
+      ref.current?.querySelectorAll('a').forEach((a) => {
+        a.setAttribute('target', '_blank')
+        a.setAttribute('rel', 'noopener noreferrer')
+      })
+    }
+    ref.current?.focus()
+    scheduleSave()
+  }
+
   function onPaste(e: React.ClipboardEvent) {
     const image = Array.from(e.clipboardData.items).find((i) => i.type.startsWith('image/'))
-    if (!image) return
-    e.preventDefault()
-    const file = image.getAsFile()
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      restoreSelection()
-      document.execCommand('insertImage', false, String(reader.result))
-      scheduleSave()
+    if (image) {
+      e.preventDefault()
+      const file = image.getAsFile()
+      if (!file) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        restoreSelection()
+        document.execCommand('insertImage', false, String(reader.result))
+        scheduleSave()
+      }
+      reader.readAsDataURL(file)
+      return
     }
-    reader.readAsDataURL(file)
+
+    const text = e.clipboardData.getData('text/plain')
+    if (!text || !/(https?:\/\/|www\.)/i.test(text)) return
+    e.preventDefault()
+    restoreSelection()
+    document.execCommand('insertHTML', false, linkifyToHtml(text))
+    scheduleSave()
+  }
+
+  function onClick(e: React.MouseEvent) {
+    if (!e.ctrlKey && !e.metaKey) return
+    const anchor = (e.target as HTMLElement).closest('a')
+    const href = anchor?.getAttribute('href')
+    if (!href) return
+    e.preventDefault()
+    window.open(href, '_blank', 'noopener,noreferrer')
   }
 
   const btn = (cmd: string, label: string, title: string, value?: string) => (
@@ -128,6 +187,18 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
         {btn('italic', 'I', 'Italic')}
         {btn('underline', 'U', 'Underline')}
         {btn('strikeThrough', 'S', 'Strikethrough')}
+        <button
+          type="button"
+          className="note-tool"
+          title="Insert link (select text first, or insert a new one)"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            saveSelection()
+          }}
+          onClick={insertLink}
+        >
+          🔗
+        </button>
         <span className="note-tool-sep" />
 
         <div className="note-size-wrap" ref={sizeWrap} title="Font size (px) — pick or type">
@@ -250,6 +321,7 @@ export function NoteEditor({ html, onChange }: Readonly<NoteEditorProps>) {
         onMouseUp={saveSelection}
         onKeyUp={saveSelection}
         onPaste={onPaste}
+        onClick={onClick}
         data-placeholder="Start typing… paste text or images here."
       />
     </div>
