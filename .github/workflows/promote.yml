@@ -42,7 +42,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if ! gh pr view promote-to-main --json number >/dev/null 2>&1; then
+          # Only an OPEN PR counts — a previously merged promote-to-main PR must not block a new promotion.
+          if [ -z "$(gh pr list --head promote-to-main --state open --json number --jq '.[0].number')" ]; then
             gh pr create --base main --head promote-to-main \
               --title "Promote staging → main (${{ inputs.sha }})" \
               --body "Automated promotion of verified staging commit \`${{ inputs.sha }}\` to \`main\`. After this merges, publish a GitHub Release to deploy production."
