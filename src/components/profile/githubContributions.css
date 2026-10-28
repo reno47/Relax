@@ -1,0 +1,411 @@
+.gh-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gh-page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gh-back {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.gh-back:hover {
+  background: var(--bg-3);
+  border-color: var(--accent);
+}
+
+.gh-page-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.gh-page-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.gh-page-title h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.gh-page-title p {
+  margin: 2px 0 0;
+  color: var(--text-1);
+  font-size: 0.9rem;
+}
+
+.gh-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.gh-card-title {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--text-0);
+}
+
+/* Connection / settings */
+.gh-conn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gh-conn-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #40c463;
+}
+
+.gh-conn-text {
+  color: var(--text-1);
+  font-size: 0.9rem;
+}
+
+.gh-conn-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.gh-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gh-settings-hint {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.gh-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.85rem;
+  color: var(--text-1);
+}
+
+.gh-field input {
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font: inherit;
+}
+
+.gh-settings-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.gh-link-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.gh-link-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.gh-link-btn.danger {
+  color: #ff6b6b;
+}
+
+.gh-link-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.gh-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+.gh-empty {
+  color: var(--text-1);
+  font-size: 0.9rem;
+}
+
+.gh-muted {
+  color: var(--text-2);
+}
+
+/* Filters */
+.gh-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gh-month-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+
+.gh-select {
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text-0);
+  font: inherit;
+  font-size: 0.84rem;
+  color-scheme: dark;
+}
+
+.gh-filters-error {
+  color: #ffa94d;
+  font-size: 0.82rem;
+  align-self: center;
+}
+
+/* Heatmap */
+.gh-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gh-heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.gh-heatmap-months-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.gh-month-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gh-heatmap-month {
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+.gh-heatmap-grid {
+  display: flex;
+  gap: 3px;
+}
+
+.gh-heatmap-week {
+  display: grid;
+  grid-template-rows: repeat(7, 10px);
+  gap: 3px;
+}
+
+.gh-heatmap-day {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.gh-heatmap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-1);
+  flex-wrap: wrap;
+}
+
+.gh-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* PR stats */
+.gh-prstats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gh-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.gh-stat-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-2);
+  border-left-width: 3px;
+}
+
+.gh-stat-card.open { border-left-color: #3fb950; }
+.gh-stat-card.draft { border-left-color: #8b949e; }
+.gh-stat-card.merged { border-left-color: #a371f7; }
+.gh-stat-card.closed { border-left-color: #f85149; }
+
+.gh-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-0);
+}
+
+.gh-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-1);
+}
+
+.gh-repo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.gh-repo-table th,
+.gh-repo-table td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gh-repo-table th {
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.gh-repo-table th:not(:first-child),
+.gh-repo-table td:not(:first-child) {
+  text-align: center;
+  width: 64px;
+}
+
+.gh-repo-table a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.gh-repo-table a:hover {
+  text-decoration: underline;
+}
+
+.gh-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gh-lang-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+/* Language pie */
+.gh-pie {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.gh-pie-svg {
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+.gh-pie-total {
+  text-anchor: middle;
+  font-size: 1.5rem;
+  font-weight: 700;
+  fill: var(--text-0);
+}
+
+.gh-pie-caption {
+  text-anchor: middle;
+  font-size: 0.7rem;
+  fill: var(--text-2);
+}
+
+.gh-pie-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.gh-pie-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text-1);
+}
+
+.gh-pie-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.gh-pie-name {
+  flex: 1;
+}
+
+.gh-pie-pct {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}

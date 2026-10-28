@@ -28,9 +28,10 @@ const NAV_ITEMS: NavItem[] = [
 interface NavbarProps {
   active: SectionId
   onChange: (id: SectionId) => void
+  onOpenGithubContributions: () => void
 }
 
-export default function Navbar({ active, onChange }: NavbarProps) {
+export default function Navbar({ active, onChange, onOpenGithubContributions }: Readonly<NavbarProps>) {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -53,7 +54,7 @@ export default function Navbar({ active, onChange }: NavbarProps) {
           </li>
         ))}
       </ul>
-      <UserMenu />
+      <UserMenu onOpenGithubContributions={onOpenGithubContributions} />
     </nav>
   )
 }

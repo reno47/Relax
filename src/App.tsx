@@ -7,6 +7,7 @@ import Infra from './components/sections/Infra'
 import Portals from './components/sections/Portals'
 import CalendarView from './components/sections/Calendar'
 import Notes from './components/sections/Notes'
+import { GithubContributions } from './components/profile/GithubContributions'
 import { SampleBanner } from './components/SampleBanner'
 import { setAuthTokenGetter } from './lib/syncStore'
 
@@ -22,6 +23,8 @@ export default function App() {
     return saved ?? 'tfs'
   })
 
+  const [profilePage, setProfilePage] = useState(false)
+
   function changeSection(id: SectionId) {
     setActive(id)
     localStorage.setItem(SECTION_KEY, id)
@@ -36,15 +39,25 @@ export default function App() {
       </SignedOut>
       <SignedIn>
         <div className="app">
-          <Navbar active={active} onChange={changeSection} />
+          <Navbar
+            active={active}
+            onChange={changeSection}
+            onOpenGithubContributions={() => setProfilePage(true)}
+          />
           <SampleBanner />
           <main>
-            {active === 'tfs' && <TFS />}
-            {active === 'github' && <GitHub />}
-            {active === 'infra' && <Infra />}
-            {active === 'portals' && <Portals />}
-            {active === 'calendar' && <CalendarView />}
-            {active === 'notes' && <Notes />}
+            {profilePage ? (
+              <GithubContributions onBack={() => setProfilePage(false)} />
+            ) : (
+              <>
+                {active === 'tfs' && <TFS />}
+                {active === 'github' && <GitHub />}
+                {active === 'infra' && <Infra />}
+                {active === 'portals' && <Portals />}
+                {active === 'calendar' && <CalendarView />}
+                {active === 'notes' && <Notes />}
+              </>
+            )}
           </main>
         </div>
       </SignedIn>
