@@ -273,6 +273,188 @@ function tfsAssignedApiPlugin(env: Record<string, string>): Plugin {
   return { name: 'tfs-assigned-api', configureServer: attach, configurePreviewServer: attach }
 }
 
+function readUserGithub(userId: string): { pat?: string; org?: string; login?: string } {
+  try {
+    return JSON.parse(readUserJson(userId, 'github.json', '{}'))
+  } catch {
+    return {}
+  }
+}
+
+function resolveDevGithub(env: Record<string, string>, userId: string): { pat: string; org?: string } | null {
+  const stored = readUserGithub(userId)
+  if (stored.pat) return { pat: stored.pat, org: stored.org }
+  if (env.OWNER_USER_ID && env.OWNER_USER_ID === userId && env.GITHUB_PAT) {
+    return { pat: env.GITHUB_PAT, org: env.GITHUB_ORG || undefined }
+  }
+  return null
+}
+
+async function githubGraphQL<T>(pat: string, query: string, variables: Record<string, unknown>): Promise<T> {
+  const r = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${pat}`, 'Content-Type': 'application/json', 'User-Agent': 'relax-dashboard' },
+    body: JSON.stringify({ query, variables }),
+  })
+  if (r.status === 401 || r.status === 403) throw new Error('Unauthorized — check the token and its scopes.')
+  const body = (await r.json()) as { data?: T; errors?: { message: string }[] }
+  if (body.errors?.length) throw new Error(body.errors[0].message)
+  if (!body.data) throw new Error('No data returned from GitHub.')
+  return body.data
+}
+
+const CAL_Q = `query($from:DateTime!,$to:DateTime!){viewer{login contributionsCollection(from:$from,to:$to){contributionCalendar{totalContributions weeks{contributionDays{date color contributionCount weekday}}}}}}`
+const PR_Q = `query($q:String!,$after:String){search(query:$q,type:ISSUE,first:100,after:$after){pageInfo{hasNextPage endCursor}nodes{... on PullRequest{state isDraft merged repository{name url primaryLanguage{name color}}}}}}`
+
+type GhLang = { name: string; color: string | null } | null
+type GhPr = { state: string; isDraft: boolean; merged: boolean; repository: { name: string; url: string; primaryLanguage: GhLang } }
+type GhBucket = 'open' | 'draft' | 'merged' | 'closed'
+
+function ghBucket(pr: GhPr): GhBucket {
+  if (pr.merged) return 'merged'
+  if (pr.state === 'CLOSED') return 'closed'
+  if (pr.isDraft) return 'draft'
+  return 'open'
+}
+
+function ghRange(url: string): { from: Date; to: Date } {
+  const sp = new URL(url, 'http://localhost').searchParams
+  const f = sp.get('from')
+  const t = sp.get('to')
+  const ok = (s: string | null): s is string => Boolean(s) && /^\d{4}-\d{2}-\d{2}$/.test(s ?? '')
+  if (ok(f) && ok(t)) return { from: new Date(`${f}T00:00:00Z`), to: new Date(`${t}T23:59:59Z`) }
+  const to = new Date()
+  const from = new Date(to)
+  from.setUTCFullYear(to.getUTCFullYear() - 1)
+  from.setUTCDate(from.getUTCDate() + 1)
+  return { from, to }
+}
+
+type GhSearchResponse = {
+  search: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: (GhPr | null)[] }
+}
+
+async function devGithubPrs(pat: string, q: string): Promise<GhPr[]> {
+  const out: GhPr[] = []
+  let after: string | null = null
+  for (let i = 0; i < 10; i += 1) {
+    const data: GhSearchResponse = await githubGraphQL<GhSearchResponse>(pat, PR_Q, { q, after })
+    for (const n of data.search.nodes) if (n) out.push(n)
+    if (!data.search.pageInfo.hasNextPage) break
+    after = data.search.pageInfo.endCursor
+  }
+  return out
+}
+
+type GhRepoStat = { name: string; url: string; language: string | null; languageColor: string | null; open: number; draft: number; merged: number; closed: number; total: number }
+
+function ghAggregate(prs: GhPr[]) {
+  const totals = { open: 0, draft: 0, merged: 0, closed: 0, total: 0 }
+  const repoMap = new Map<string, GhRepoStat>()
+  const langMap = new Map<string, { name: string; color: string | null; count: number }>()
+  for (const pr of prs) {
+    const b = ghBucket(pr)
+    totals[b] += 1
+    totals.total += 1
+    const lang = pr.repository.primaryLanguage
+    const r = repoMap.get(pr.repository.name) ?? { name: pr.repository.name, url: pr.repository.url, language: lang?.name ?? null, languageColor: lang?.color ?? null, open: 0, draft: 0, merged: 0, closed: 0, total: 0 }
+    r[b] += 1
+    r.total += 1
+    repoMap.set(pr.repository.name, r)
+    const ln = lang?.name ?? 'Other'
+    const l = langMap.get(ln) ?? { name: ln, color: lang?.color ?? null, count: 0 }
+    l.count += 1
+    langMap.set(ln, l)
+  }
+  const repos = [...repoMap.values()].sort((a, b) => b.total - a.total)
+  const languages = [...langMap.values()].sort((a, b) => b.count - a.count)
+  return { totals, repos, languages }
+}
+
+type GhCalResponse = { viewer: { login: string; contributionsCollection: { contributionCalendar: { totalContributions: number; weeks: { contributionDays: { date: string; color: string; contributionCount: number; weekday: number }[] }[] } } } }
+
+async function devGithubContributions(pat: string, org: string | undefined, from: Date, to: Date) {
+  const calData = await githubGraphQL<GhCalResponse>(pat, CAL_Q, { from: from.toISOString(), to: to.toISOString() })
+  const login = calData.viewer.login
+  const cal = calData.viewer.contributionsCollection.contributionCalendar
+  const calendar = {
+    totalContributions: cal.totalContributions,
+    weeks: cal.weeks.map((w) => ({
+      days: w.contributionDays.map((d) => ({ date: d.date, color: d.color, count: d.contributionCount, weekday: d.weekday })),
+    })),
+  }
+  const ymd = (d: Date) => d.toISOString().slice(0, 10)
+  const parts = [`author:${login}`, 'type:pr', `created:${ymd(from)}..${ymd(to)}`]
+  if (org) parts.push(`org:${org}`)
+  const prs = await devGithubPrs(pat, parts.join(' '))
+  return { login, calendar, ...ghAggregate(prs) }
+}
+
+function githubSettingsApiPlugin(): Plugin {
+  const attach = (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use('/api/github-settings', (req, res) => {
+      const send = (code: number, obj: unknown) => {
+        res.statusCode = code
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify(obj))
+      }
+      const userId = devUserId(req)
+      if (!userId) return send(401, { error: 'Unauthorized' })
+
+      if (req.method === 'GET') {
+        const s = readUserGithub(userId)
+        return send(200, { configured: Boolean(s.pat), org: s.org ?? null, login: s.login ?? null })
+      }
+      if (req.method === 'POST') {
+        let body = ''
+        req.on('data', (chunk) => (body += chunk))
+        req.on('end', async () => {
+          try {
+            const { pat, org } = JSON.parse(body) as { pat?: string; org?: string }
+            const orgVal = (org ?? '').trim()
+            if (!pat?.trim()) return send(400, { error: 'Provide a Personal Access Token.' })
+            const data = await githubGraphQL<{ viewer: { login: string } }>(pat.trim(), `query{viewer{login}}`, {})
+            writeUserJson(userId, 'github.json', JSON.stringify({ pat: pat.trim(), org: orgVal || undefined, login: data.viewer.login }))
+            send(200, { configured: true, org: orgVal || null, login: data.viewer.login })
+          } catch (e) {
+            send(400, { error: e instanceof Error ? e.message : 'Could not verify the token with GitHub.' })
+          }
+        })
+        return
+      }
+      if (req.method === 'DELETE') {
+        writeUserJson(userId, 'github.json', '{}')
+        return send(200, { configured: false, org: null, login: null })
+      }
+      send(405, { error: 'Method not allowed.' })
+    })
+  }
+  return { name: 'github-settings-api', configureServer: attach, configurePreviewServer: attach }
+}
+
+function githubContributionsApiPlugin(env: Record<string, string>): Plugin {
+  const attach = (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use('/api/github-contributions', async (req, res) => {
+      const send = (code: number, obj: unknown) => {
+        res.statusCode = code
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify(obj))
+      }
+      const userId = devUserId(req)
+      if (!userId) return send(401, { error: 'Unauthorized' })
+      const creds = resolveDevGithub(env, userId)
+      if (!creds) return send(501, { error: 'Add your GitHub token to see contributions.' })
+      const { from, to } = ghRange(req.url ?? '')
+      try {
+        send(200, await devGithubContributions(creds.pat, creds.org, from, to))
+      } catch (e) {
+        send(502, { error: e instanceof Error ? e.message : 'Could not reach GitHub.' })
+      }
+    })
+  }
+  return { name: 'github-contributions-api', configureServer: attach, configurePreviewServer: attach }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
@@ -282,6 +464,8 @@ export default defineConfig(({ mode }) => {
       tfsApiPlugin(env),
       tfsSettingsApiPlugin(),
       tfsAssignedApiPlugin(env),
+      githubSettingsApiPlugin(),
+      githubContributionsApiPlugin(env),
     ],
   }
 })

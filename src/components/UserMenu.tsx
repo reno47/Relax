@@ -8,7 +8,11 @@ const THEMES: { value: Theme; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ]
 
-export function UserMenu() {
+type UserMenuProps = {
+  onOpenGithubContributions: () => void
+}
+
+export function UserMenu({ onOpenGithubContributions }: Readonly<UserMenuProps>) {
   const { user } = useUser()
   const { signOut } = useClerk()
   const { theme, setTheme } = useTheme()
@@ -43,6 +47,11 @@ export function UserMenu() {
   function pickTheme(next: Theme) {
     setTheme(next)
     close()
+  }
+
+  function openGithubContributions() {
+    close()
+    onOpenGithubContributions()
   }
 
   return (
@@ -91,6 +100,10 @@ export function UserMenu() {
               </div>
             )}
           </div>
+
+          <button type="button" className="user-menu-item" onClick={openGithubContributions}>
+            <span>GitHub Contributions</span>
+          </button>
 
           <button type="button" className="user-menu-item" onClick={() => signOut()}>
             Logout
