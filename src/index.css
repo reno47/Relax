@@ -16,6 +16,7 @@
   --accent-portals: var(--accent);
   --accent-calendar: var(--accent);
   --accent-notes: var(--accent);
+  --accent-reminder: var(--accent);
 
   --danger-bg: #2b1a22;
   --danger-strong: #5a2330;

@@ -5,9 +5,10 @@ import infraIcon from '../assets/icons/infra.svg'
 import portalsIcon from '../assets/icons/portals.svg'
 import calendarIcon from '../assets/icons/calendar.svg'
 import notesIcon from '../assets/icons/notes.svg'
+import reminderIcon from '../assets/icons/reminder.svg'
 import { UserMenu } from './UserMenu'
 
-export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar' | 'notes'
+export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar' | 'reminder' | 'notes'
 
 interface NavItem {
   id: SectionId
@@ -22,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'infra', label: 'Infra', icon: infraIcon, accent: 'var(--accent-infra)' },
   { id: 'portals', label: 'Important Portals', icon: portalsIcon, accent: 'var(--accent-portals)' },
   { id: 'calendar', label: 'Calendar', icon: calendarIcon, accent: 'var(--accent-calendar)' },
+  { id: 'reminder', label: 'Reminder', icon: reminderIcon, accent: 'var(--accent-reminder)' },
   { id: 'notes', label: 'Notes', icon: notesIcon, accent: 'var(--accent-notes)' },
 ]
 
