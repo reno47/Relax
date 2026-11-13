@@ -1,0 +1,229 @@
+.rm-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rm-tab {
+  padding: 9px 18px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.rm-tab:hover {
+  color: var(--text-1);
+}
+
+.rm-tab.active {
+  color: var(--text-0);
+  border-bottom-color: var(--section-accent, var(--accent));
+}
+
+.rm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 820px;
+}
+
+.rm-add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rm-input {
+  flex: 1 1 240px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.rm-input:focus {
+  outline: none;
+  border-color: var(--section-accent, var(--accent));
+}
+
+.rm-when {
+  flex: 0 0 auto;
+}
+
+.rm-repeat {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.rm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rm-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-1);
+}
+
+.rm-item.overdue {
+  border-left: 3px solid var(--wi-orange);
+}
+
+.rm-item-edit {
+  display: block;
+}
+
+.rm-check {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.rm-check:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.rm-item.done .rm-check {
+  border-color: var(--success);
+  background: var(--success);
+  color: #fff;
+}
+
+.rm-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rm-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-0);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.rm-item.done .rm-text {
+  text-decoration: line-through;
+  color: var(--text-2);
+}
+
+.rm-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--text-2);
+  font-size: 0.78rem;
+}
+
+.rm-item.overdue .rm-due {
+  color: var(--wi-orange);
+}
+
+.rm-badge {
+  color: var(--info-text);
+}
+
+.rm-snooze {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rm-snooze-label {
+  color: var(--text-2);
+  font-size: 0.75rem;
+}
+
+.rm-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.rm-chip:hover {
+  border-color: var(--section-accent, var(--accent));
+}
+
+.rm-del {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.rm-del:hover {
+  background: var(--bg-3);
+  color: var(--text-0);
+}
+
+.rm-empty,
+.rm-hint {
+  color: var(--text-2);
+  font-size: 0.88rem;
+}
+
+.rm-empty {
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.rm-notice {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  font-size: 0.85rem;
+}
+
+.rm-teams {
+  max-width: 620px;
+}

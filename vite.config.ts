@@ -3,6 +3,20 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import crypto from 'node:crypto'
+import type { IncomingMessage, ServerResponse } from 'node:http'
+import {
+  afterFire,
+  applyAction,
+  buildReminderCard,
+  buildTestCard,
+  createReminder,
+  isAllowedWebhook,
+  parseReminderInput,
+  pruneCompleted,
+  publicReminder,
+  type Reminder,
+} from './api/_remindercore'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const USERS_DIR = path.resolve(__dirname, 'data', 'users')
@@ -455,6 +469,138 @@ function githubContributionsApiPlugin(env: Record<string, string>): Plugin {
   return { name: 'github-contributions-api', configureServer: attach, configurePreviewServer: attach }
 }
 
+type DevReq = IncomingMessage
+type DevRes = ServerResponse
+
+function readBody(req: DevReq): Promise<unknown> {
+  return new Promise((resolve) => {
+    let body = ''
+    req.on('data', (chunk: Buffer) => (body += chunk))
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {})
+      } catch {
+        resolve({})
+      }
+    })
+  })
+}
+
+function jsonSender(res: DevRes) {
+  return (code: number, obj: unknown) => {
+    res.statusCode = code
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(obj))
+  }
+}
+
+function readDevReminders(userId: string): Reminder[] {
+  try {
+    return pruneCompleted(JSON.parse(readUserJson(userId, 'reminders.json', '[]')), Date.now())
+  } catch {
+    return []
+  }
+}
+
+function readDevTeams(userId: string): string | null {
+  try {
+    return (JSON.parse(readUserJson(userId, 'teams.json', '{}')) as { url?: string }).url ?? null
+  } catch {
+    return null
+  }
+}
+
+async function devPostTeams(url: string, payload: unknown): Promise<boolean> {
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    return r.ok
+  } catch {
+    return false
+  }
+}
+
+async function devRemindersResult(userId: string, method: string, id: string, body: unknown) {
+  const list = readDevReminders(userId)
+  const now = Date.now()
+  if (method === 'GET') return { list }
+  if (method === 'POST') {
+    const input = parseReminderInput(body, now)
+    if (typeof input === 'string') return { error: input }
+    return createReminder(list, input, now, crypto.randomUUID())
+  }
+  if (method === 'PATCH') return applyAction(list, id, body, now)
+  if (method === 'DELETE') return { list: list.filter((r) => r.id !== id) }
+  return { error: 'Method not allowed.' }
+}
+
+async function devFireDue(): Promise<void> {
+  if (!fs.existsSync(USERS_DIR)) return
+  for (const userId of fs.readdirSync(USERS_DIR)) {
+    const list = readDevReminders(userId)
+    const now = Date.now()
+    const due = list.filter((r) => !r.completedAt && !r.firedAt && r.due <= now)
+    if (!due.length) continue
+    const url = readDevTeams(userId)
+    const fired = new Map<string, Reminder>()
+    for (const r of due) {
+      if (url && !(await devPostTeams(url, buildReminderCard(r)))) continue
+      fired.set(r.id, afterFire(r, now))
+    }
+    writeUserJson(userId, 'reminders.json', JSON.stringify(list.map((r) => fired.get(r.id) ?? r)))
+  }
+}
+
+function remindersApiPlugin(): Plugin {
+  const attach = (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use('/api/reminders', async (req, res) => {
+      const send = jsonSender(res)
+      const userId = devUserId(req)
+      if (!userId) return send(401, { error: 'Unauthorized' })
+      const id = new URL(req.url ?? '', 'http://localhost').searchParams.get('id') ?? ''
+      const body = req.method === 'POST' || req.method === 'PATCH' ? await readBody(req) : {}
+      const result = await devRemindersResult(userId, req.method ?? 'GET', id, body)
+      if ('error' in result) return send(400, { error: result.error })
+      writeUserJson(userId, 'reminders.json', JSON.stringify(result.list))
+      send(200, { reminders: result.list.map(publicReminder), teamsConfigured: Boolean(readDevTeams(userId)) })
+    })
+    server.middlewares.use('/api/teams-settings', async (req, res) => {
+      const send = jsonSender(res)
+      const userId = devUserId(req)
+      if (!userId) return send(401, { error: 'Unauthorized' })
+      if (req.method === 'GET') return send(200, { configured: Boolean(readDevTeams(userId)) })
+      if (req.method === 'DELETE') {
+        writeUserJson(userId, 'teams.json', '{}')
+        return send(200, { configured: false })
+      }
+      const { url, test } = (await readBody(req)) as { url?: string; test?: boolean }
+      if (test) {
+        const stored = readDevTeams(userId)
+        if (!stored) return send(400, { error: 'Connect Teams first.' })
+        return (await devPostTeams(stored, buildTestCard()))
+          ? send(200, { configured: true })
+          : send(502, { error: 'Teams did not accept the message. Check the workflow is on.' })
+      }
+      const value = (url ?? '').trim()
+      if (!isAllowedWebhook(value)) return send(400, { error: 'Paste the HTTPS webhook URL from your Teams workflow.' })
+      writeUserJson(userId, 'teams.json', JSON.stringify({ url: value }))
+      send(200, { configured: true })
+    })
+  }
+  return {
+    name: 'reminders-api',
+    configureServer(server) {
+      attach(server)
+      const timer = setInterval(() => void devFireDue(), 20_000)
+      server.httpServer?.on('close', () => clearInterval(timer))
+    },
+    configurePreviewServer: attach,
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
@@ -466,6 +612,7 @@ export default defineConfig(({ mode }) => {
       tfsAssignedApiPlugin(env),
       githubSettingsApiPlugin(),
       githubContributionsApiPlugin(env),
+      remindersApiPlugin(),
     ],
   }
 })

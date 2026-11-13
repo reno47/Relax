@@ -7,6 +7,7 @@ import Infra from './components/sections/Infra'
 import Portals from './components/sections/Portals'
 import CalendarView from './components/sections/Calendar'
 import Notes from './components/sections/Notes'
+import Reminder from './components/sections/Reminder'
 import { GithubContributions } from './components/profile/GithubContributions'
 import { SampleBanner } from './components/SampleBanner'
 import { setAuthTokenGetter } from './lib/syncStore'
@@ -55,6 +56,7 @@ export default function App() {
                 {active === 'infra' && <Infra />}
                 {active === 'portals' && <Portals />}
                 {active === 'calendar' && <CalendarView />}
+                {active === 'reminder' && <Reminder />}
                 {active === 'notes' && <Notes />}
               </>
             )}
