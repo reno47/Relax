@@ -31,26 +31,42 @@ Build command: `tsc -b && vite build`. Dev: `npm run dev`.
 │   ├── _crypto.ts           # AES-256-GCM encrypt/decrypt (for PATs)
 │   ├── _tfs.ts              # TFS credential resolution (per-user + owner fallback)
 │   ├── _tfscore.ts          # Azure DevOps "assigned items" logic (pure)
+│   ├── _github.ts           # GitHub credential resolution + GraphQL client
+│   ├── _githubcore.ts       # Contribution calendar + PR stats
+│   ├── _myprscore.ts        # Open/draft PR search (pure, shared with dev server)
+│   ├── _remindercore.ts     # Reminder model, repeat maths, Teams cards (pure, shared with dev server)
+│   ├── _reminders.ts        # Reminder storage, QStash scheduling, Teams delivery
 │   ├── state.ts             # GET/POST dashboard state blob
 │   ├── calendar.ts          # GET/POST calendar blob
 │   ├── tfs.ts               # Single work-item lookup by ID
 │   ├── tfs-settings.ts      # GET/POST/DELETE TFS connection (org/area/PAT)
-│   └── tfs-assigned.ts      # GET assigned work items
+│   ├── tfs-assigned.ts      # GET assigned work items
+│   ├── github-settings.ts   # GET/POST/DELETE GitHub connection (PAT/org)
+│   ├── github-contributions.ts # GET contributions for a date range
+│   ├── github-prs.ts        # GET my open + draft PRs
+│   ├── reminders.ts         # GET/POST/PATCH/DELETE reminders
+│   ├── teams-settings.ts    # GET/POST/DELETE Teams webhook, send test
+│   ├── reminder-fire.ts     # QStash callback → post to Teams
+│   └── cron-reminders.ts    # Daily safety-net sweep (Vercel Cron)
 ├── src/
 │   ├── main.tsx             # App bootstrap (ClerkProvider, theme apply)
 │   ├── App.tsx              # Auth gate + tab router
 │   ├── index.css            # Design tokens (light/dark themes)
 │   ├── lib/syncStore.ts     # localStorage ⇄ server sync engine
+│   ├── lib/badgeEvents.ts   # in-page events that keep the Reminder badge live
 │   ├── hooks/
 │   │   ├── useLocalStorage.ts  # synced local state
-│   │   └── useTheme.ts         # theme state (light/dark)
+│   │   ├── useTheme.ts         # theme state (light/dark)
+│   │   └── useReminderBadge.ts # open to-dos + overdue reminders count
 │   ├── data/links.ts        # generic sample/default content
 │   └── components/
-│       ├── Navbar.tsx           # top navigation + UserMenu
-│       ├── UserMenu.tsx         # avatar → email / theme / logout
+│       ├── Navbar.tsx           # top navigation + Reminder badge + UserMenu
+│       ├── UserMenu.tsx         # avatar → email / theme / GitHub Contributions / logout
 │       ├── SampleBanner.tsx     # onboarding "sample data" banner
+│       ├── profile/             # GitHub Contributions + My Open PRs pages
 │       └── sections/            # one folder for all tab features
 ├── scripts/                 # ops scripts (seed/backup/migrate) — Node .mjs
+├── vercel.json              # Vercel Cron for /api/cron-reminders
 ├── vite.config.ts           # dev server + local /api middleware
 └── docs/                    # this documentation
 ```
@@ -73,6 +89,8 @@ Build command: `tsc -b && vite build`. Dev: `npm run dev`.
   `setAuthTokenGetter(() => getToken())` so plain modules can attach the JWT.
 - Holds the active tab (`dashboard.activeSection` in localStorage) and renders the
   matching section component.
+- Holds a `page` state (`'contributions' | 'prs' | null`) for full-page views
+  (GitHub Contributions, My Open PRs). Clicking any nav tab closes the page.
 
 ---
 
@@ -105,8 +123,9 @@ A `useState`-like hook backed by localStorage **and** the server:
   "dashboard.tfs.workitems":   [ ...WorkItem[] ],
   "dashboard.github.sections": [ [ ...Section ], ... ],
   "dashboard.infra.sections":  [ ...Section ],
-  "dashboard.portals.items":   [ ...LinkItem ],
+  "dashboard.portals.sections": [ ...Section ],
   "dashboard.notes.sections":  [ ...NoteSection ],
+  "dashboard.todos":           [ ...Todo ],
   "dashboard.activeSection":   "tfs",
   "dashboard.theme":           "dark",
   "dashboard.onboardingDismissed": true
@@ -153,19 +172,35 @@ The richest tab. It combines:
   collapsible sections `{ id, title, items: LinkItem[] }`.
 - Supports drag-and-drop reordering; legacy keys (`layout/order/custom/removed`)
   are read once to migrate old users into the sections model.
+- The **My Open PRs** button (next to *+ Add section*) opens the My Open PRs page
+  (see §6a).
 
 ### Infra — `Infra.tsx`
 - Data key: `dashboard.infra.sections` = `Section[]` (`{ id, title, items }`).
 - Seeded from `links.ts` defaults, then fully user-managed.
 
 ### Important Portals — `Portals.tsx`
-- Data key: `dashboard.portals.items` = `LinkItem[]`.
+- Data key: `dashboard.portals.sections` = `Section[]`. Old
+  `dashboard.portals.items` / `.custom` data is migrated into sections on first
+  load.
 
 ### Calendar — `Calendar.tsx`
 - **Own endpoint** `/api/calendar` (not the state blob).
 - Categories (`{ id, name, color }`) + marks (`dateKey → categoryId`, dateKey =
   `YYYY-MM-DD`). Paint days by clicking; summary counts per category/year;
   JSON backup/restore built in.
+
+### Reminder — `Reminder.tsx`
+Two tabs (last one remembered in `reminder.tab`):
+- **To-Do** (`TodoList.tsx`) — `useLocalStorage('dashboard.todos')`, so it syncs
+  like any dashboard key. Ticking strikes an item through; completed items are
+  pruned 24h later (checked every minute).
+- **Reminders** (`RemindersList.tsx`, `ReminderForm.tsx`, `TeamsSettings.tsx`) —
+  server-backed via `useReminders.ts` (`/api/reminders`, refreshed every 60s).
+  Date/time, repeat (none/daily/weekdays/weekly/monthly), snooze, edit, tick,
+  delete. Fired one-off reminders stay visible until ticked or deleted.
+  `TeamsSettings` stores the Teams Workflows webhook and can send a test card.
+- `reminderUtils.ts` holds formatting helpers; styles in `reminder.css` (`rm-*`).
 
 ### Notes — `Notes.tsx` + `NoteEditor.tsx`
 - Data key: `dashboard.notes.sections` = `NoteSection[]`
@@ -184,8 +219,20 @@ The richest tab. It combines:
 
 ### `Navbar.tsx` + `UserMenu.tsx`
 - Navbar has the tab buttons and the **UserMenu** (top-right avatar).
+- The **Reminder** tab shows a red badge = open to-dos + overdue reminders
+  (`useReminderBadge`). `TodoList` and `useReminders` emit in-page events
+  (`badgeEvents.ts`) so the count updates instantly.
 - UserMenu dropdown: **email** (header) → **Theme** sub-panel (Light/Dark) →
-  **Logout**. Theme changes call `useTheme().setTheme` (synced).
+  **GitHub Contributions** → **Logout**. Theme changes call
+  `useTheme().setTheme` (synced).
+
+### 6a. Profile pages — `src/components/profile/`
+- **GitHub Contributions** (`GithubContributions.tsx`) — connection
+  (`GithubSettings.tsx`, `/api/github-settings`), month-range filters,
+  contribution heatmap, PR stats per repo, language pie, and the open-PR list.
+- **My Open PRs** (`MyPrsPage.tsx` → `MyOpenPrs.tsx` + `useMyPrs.ts`) — calls
+  `/api/github-prs`; All/Open/Draft filters, review status chip, age (≥14 days
+  highlighted as stale). Styles in `myPrs.css` (`mpr-*`).
 
 ### `SampleBanner.tsx`
 - New/empty accounts see generic sample content (from `links.ts`) and an
@@ -197,7 +244,9 @@ The richest tab. It combines:
 
 ## 7. The API (`/api`)
 
-All handlers first call `getUserId(req)`; a missing/invalid token → `401`.
+All handlers first call `getUserId(req)`; a missing/invalid token → `401`
+(except `reminder-fire.ts`, authenticated by the QStash signature, and
+`cron-reminders.ts`, authenticated by `CRON_SECRET`).
 
 | File | Method(s) | Purpose |
 |---|---|---|
@@ -211,10 +260,25 @@ All handlers first call `getUserId(req)`; a missing/invalid token → `401`.
 | `tfs.ts` | GET | Look up one work item by numeric id. |
 | `tfs-settings.ts` | GET/POST/DELETE | Manage the TFS connection; **GET never returns the PAT**. |
 | `tfs-assigned.ts` | GET | Return assigned Feature/Story/Bug items + iterations. |
+| `_github.ts` | — | `resolveGithubCredentials(userId)` + `githubGraphQL()`. |
+| `_githubcore.ts` | — | `fetchContributions(creds, from, to)`. |
+| `_myprscore.ts` | — | `fetchMyOpenPrs(gql, org)` — pure; the GraphQL function is injected. |
+| `_remindercore.ts` | — | Reminder types, `nextOccurrence`, `applyAction`, webhook allow-list, Teams card builders — pure. |
+| `_reminders.ts` | — | KV load/save, QStash publish/cancel, `fireReminder`, QStash signature check. |
+| `github-settings.ts` | GET/POST/DELETE | Manage the GitHub connection; verifies the PAT; **GET never returns it**. |
+| `github-contributions.ts` | GET | Contribution calendar + PR stats for `?from=&to=`. |
+| `github-prs.ts` | GET | The user's open + draft PRs (in the saved org). |
+| `reminders.ts` | GET/POST/PATCH/DELETE | Reminder CRUD; PATCH actions: `complete`, `uncomplete`, `snooze`, `edit`. Returns `{ reminders, teamsConfigured }`. |
+| `teams-settings.ts` | GET/POST/DELETE | Save the Teams webhook (encrypted) or `{ test: true }` to send a test card. |
+| `reminder-fire.ts` | POST | QStash callback (signature-verified, no user JWT) — delivers one reminder. |
+| `cron-reminders.ts` | GET | Daily cron (Bearer `CRON_SECRET`) — fire overdue, book upcoming. |
 
 Files prefixed with `_` are **not** treated as routes by Vercel (shared helpers).
 Relative imports inside `api/` **must** carry a `.js` extension (Vercel runs them
 as ESM) — e.g. `import { getUserId } from './_auth.js'`.
+
+`_remindercore.ts` and `_myprscore.ts` have **no imports** so `vite.config.ts`
+can reuse them for the local dev API; they are listed in `tsconfig.node.json`.
 
 ---
 

@@ -14,6 +14,7 @@ are separated, and exactly what happens on every push and release.
 |---|---|
 | Hosting (SPA + serverless API) | **Vercel** (team `relax47`, project `personal-dashboard`) |
 | Database | **Upstash Redis** (one DB, shared by prod + staging via key prefix) |
+| Reminder scheduling | **Upstash QStash** (Vercel integration, free tier) + **Vercel Cron** (`vercel.json`) |
 | Auth | **Clerk** |
 | CI/CD | **GitHub Actions** (`.github/workflows/deploy.yml`) |
 | Source | **GitHub** `reno47/Relax` |
@@ -103,6 +104,15 @@ environment.
 | `TFS_ENC_KEY` | ✅ (recommended) | ✅ | ok |
 | `OWNER_USER_ID` | ✅ | ✅ | — |
 | `AZDO_PAT` / `AZDO_ORG` | optional | optional | ok |
+| `GITHUB_PAT` / `GITHUB_ORG` | optional | optional | ok |
+| `QSTASH_TOKEN`, `QSTASH_URL`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` | ✅ | ✅ | ok — added automatically by connecting the **Upstash QStash** store (Vercel → Storage) |
+| `CRON_SECRET` | ✅ | — | ok — Vercel Cron sends it as `Authorization: Bearer …` |
+| `REMINDER_BASE_URL` | optional | optional | — override the URL QStash calls back |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | optional | optional | ok — only if deployment protection blocks QStash |
+
+> **Reminders need QStash.** Without `QSTASH_TOKEN` reminders are saved but only
+> delivered by the daily cron (`30 2 * * *` UTC = 08:00 IST). Vercel Cron runs on
+> **Production only**, so on staging a reminder fires only through QStash.
 
 > **Why the "Sensitive" flag matters:** Vercel does not expose *Sensitive* env
 > vars to `vercel pull` in CI. Because `VITE_CLERK_PUBLISHABLE_KEY` is baked into
@@ -185,6 +195,12 @@ free — these are real server-side walls, not conventions.
 - `v3.2.0` TFS assigned work items + filters + state chips.
 - `v3.2.1` mandatory area path + docs.
 - `v3.2.2` rebrand to Relax.
+- `v3.2.3` brand polish.
+- `v3.3.0` clickable links in Notes.
+- `v3.4.0` GitHub Contributions page + Portals sections.
+- `v3.5.0` Reminder tab: To-Do + Teams reminders (QStash, snooze, repeat).
+- `v3.6.0` My open/draft PRs list + Reminder navbar badge.
+- `v3.6.1` My Open PRs moved to its own page.
 
 ---
 
@@ -229,6 +245,8 @@ Common issues and causes:
 | Prod shows no data after deploy | `KV_KEY_PREFIX` accidentally set on Production. |
 | TFS assigned empty, `wiqlStatus: 404` | Wrong org slug, or WIQL called org-level (must be project-scoped). |
 | Staging job didn't run on push | Branch not matching `feature/**` / `productization`, or missing Vercel secrets. |
+| Promotion PR says "merge commit cannot be cleanly created" | Rebase-merging rewrites SHAs, so `staging` and `main` histories diverge even with identical content. Branch from `origin/main`, cherry-pick the new staging commit(s), and open the PR from that branch — or reset `staging` to `main` after a release. |
+| Reminders never arrive in Teams | Check `QSTASH_*` vars, the Teams webhook (*Send test*), and Vercel runtime logs for `/api/reminder-fire`. |
 
 > Do **not** commit compiled artifacts. `api/*.js` and `api/*.d.ts` are
 > git-ignored; if the TS project ever emits them, remove them (a stale
