@@ -20,9 +20,10 @@ a set of stateless functions.
 |---|---|---|
 | Client (SPA) | Vite 5 + React 18 + TypeScript | UI, local caching, optimistic updates |
 | Auth | Clerk (email magic-link, invite-only) | Identity, session tokens (JWT) |
-| API | Vercel Serverless Functions (`/api/*.ts`) | Auth verification, per-user storage, Azure DevOps proxy |
-| Database | Upstash Redis (via `@vercel/kv`) | Per-user JSON blobs (state, calendar, TFS settings) |
-| External | Azure DevOps REST API | Work-item lookup + assigned items |
+| API | Vercel Serverless Functions (`/api/*.ts`) | Auth verification, per-user storage, Azure DevOps / GitHub proxy, reminder scheduling |
+| Database | Upstash Redis (via `@vercel/kv`) | Per-user JSON blobs (state, calendar, TFS/GitHub/Teams settings, reminders) |
+| Scheduler | Upstash QStash + Vercel Cron | Delivers each reminder at its due time; daily safety-net sweep |
+| External | Azure DevOps REST API, GitHub GraphQL API, Microsoft Teams Workflows | Work items; contributions + open PRs; reminder messages |
 | Hosting/CI | Vercel + GitHub Actions | Build, staging (Preview) & production deploys |
 
 ```mermaid
@@ -76,6 +77,11 @@ flowchart TB
 the server; on change it *pushes* a snapshot back (debounced). This makes data
 follow the user across browsers, devices, and incognito windows.
 
+> The diagram shows the original core. Later features follow the same pattern:
+> GitHub (`github-settings.ts`, `github-contributions.ts`, `github-prs.ts` →
+> GitHub GraphQL) and Reminders (`reminders.ts`, `teams-settings.ts`,
+> `reminder-fire.ts`, `cron-reminders.ts` → QStash + Teams). See §5a and §5b.
+
 ---
 
 ## 2. Authentication & identity
@@ -116,6 +122,10 @@ partitioned **per user** using the Clerk user id.
 | `user:{userId}:state` | Dashboard state blob (JSON object) | `POST /api/state` | `GET /api/state` |
 | `user:{userId}:calendar` | Calendar blob (JSON object) | `POST /api/calendar` | `GET /api/calendar` |
 | `user:{userId}:tfs` | TFS connection settings (JSON, PAT encrypted) | `POST /api/tfs-settings` | `tfs.ts`, `tfs-assigned.ts`, `tfs-settings.ts` |
+| `user:{userId}:github` | GitHub connection `{ pat(enc), org?, login }` | `POST /api/github-settings` | `github-contributions.ts`, `github-prs.ts`, `github-settings.ts` |
+| `user:{userId}:reminders` | `Reminder[]` (see §3.5) | `/api/reminders`, `reminder-fire.ts`, `cron-reminders.ts` | same |
+| `user:{userId}:teams` | Teams webhook `{ url(enc) }` | `POST /api/teams-settings` | `_reminders.ts` (when firing) |
+| `reminders:users` | Redis **set** of user ids that have reminders | `saveReminders()` | `cron-reminders.ts` |
 
 > **Staging namespace:** in the Preview (staging) environment an env var
 > `KV_KEY_PREFIX=staging:` is set, and every key is prefixed by
@@ -136,8 +146,9 @@ localStorage keys and whose values are the parsed JSON of each. It contains
   "dashboard.tfs.workitems":   [ { "id": 1201, "title": "...", "iteration": "Proj\\PI\\S2", "type": "User Story", "state": "Approved", "url": "..." } ],
   "dashboard.github.sections": [ [ { "id": "s-...", "title": "My Repos", "items": [ { "title": "react", "url": "https://github.com/facebook/react" } ] } ], [], [], [], [], [] ],
   "dashboard.infra.sections":  [ { "id": "aws", "title": "AWS", "items": [ { "title": "AWS Console", "url": "https://console.aws.amazon.com" } ] } ],
-  "dashboard.portals.items":   [ { "title": "Office 365", "url": "https://www.office.com" } ],
+  "dashboard.portals.sections": [ { "id": "...", "title": "Daily", "items": [ { "title": "Office 365", "url": "https://www.office.com" } ] } ],
   "dashboard.notes.sections":  [ { "id": "general", "name": "Notes", "pages": [ { "id": "welcome", "title": "Welcome", "html": "<p>...</p>", "date": "2026-08-16" } ] } ],
+  "dashboard.todos":           [ { "id": "...", "text": "Renew badge", "createdAt": 1763452800000, "completedAt": 1763456400000 } ],
   "dashboard.activeSection":   "tfs",
   "dashboard.theme":           "dark",
   "dashboard.onboardingDismissed": true
@@ -188,6 +199,31 @@ Stored separately (its own endpoint) because it changes on a different cadence.
   `TFS_ENC_KEY` (or `CLERK_SECRET_KEY` as a fallback).
 - The stored string is `iv.tag.ciphertext` (three base64 parts joined by `.`).
 - `GET /api/tfs-settings` **never** returns the PAT — only `{ configured, org, area }`.
+
+`user:{id}:github` and `user:{id}:teams` use the same `iv.tag.ciphertext`
+encryption for the GitHub PAT and the Teams webhook URL; their GET endpoints never
+return the secret either.
+
+### 3.5 `user:{id}:reminders` — the reminders list
+
+Defined in [`api/_remindercore.ts`](../api/_remindercore.ts):
+
+```ts
+type Repeat = 'none' | 'daily' | 'weekdays' | 'weekly' | 'monthly'
+type Reminder = {
+  id: string; text: string
+  due: number          // epoch ms of the next occurrence
+  repeat: Repeat
+  tz: number           // client offset, minutes east of UTC (for weekday/month maths)
+  createdAt: number
+  completedAt?: number // ticked; pruned 24h later
+  firedAt?: number     // one-off reminder already delivered
+  msgId?: string       // pending QStash message id (never sent to the browser)
+}
+```
+
+To-dos are **not** stored here — they live in the synced state blob as
+`dashboard.todos`.
 
 ---
 
@@ -270,6 +306,57 @@ Notes:
 
 ---
 
+## 5a. Data flow: GitHub contributions & open PRs
+
+- `GET /api/github-contributions?from=&to=` — contribution calendar (viewer
+  `contributionsCollection`) plus PR stats from search
+  `author:{login} type:pr created:{from}..{to} [org:{org}]`. Logic in
+  [`api/_githubcore.ts`](../api/_githubcore.ts).
+- `GET /api/github-prs` — the user's **open and draft** PRs via search
+  `is:pr is:open archived:false author:{login} [org:{org}]` (up to 300), with
+  review status derived from `reviewDecision` / latest reviews. Logic in
+  [`api/_myprscore.ts`](../api/_myprscore.ts) (pure; shared with the dev server).
+- Credentials come from `user:{id}:github` (decrypted), falling back to
+  `GITHUB_PAT` / `GITHUB_ORG` for the owner only. Missing → `501`.
+
+---
+
+## 5b. Data flow: reminders → Microsoft Teams
+
+```mermaid
+sequenceDiagram
+  participant B as Browser (Reminder tab)
+  participant A as /api/reminders
+  participant KV as Upstash Redis
+  participant Q as QStash
+  participant F as /api/reminder-fire
+  participant T as Teams Workflow
+
+  B->>A: POST { text, due, repeat, tz }
+  A->>KV: SET user:{id}:reminders, SADD reminders:users
+  A->>Q: publish /api/reminder-fire (Upstash-Not-Before = due)
+  Q-->>A: messageId (stored as msgId)
+  Note over Q: waits until due
+  Q->>F: POST { u, r, at } + Upstash-Signature
+  F->>F: verify HS256 signature (current/next signing key)
+  F->>KV: load reminder, check it is still fireable
+  F->>T: POST Adaptive Card (decrypted webhook)
+  F->>KV: repeating → roll due forward + book next; one-off → set firedAt
+```
+
+- Editing, snoozing, completing or deleting a reminder **cancels** its QStash
+  message and books a new one when needed.
+- QStash delays are capped at ~7 days. A **daily Vercel Cron**
+  (`/api/cron-reminders`, `30 2 * * *` UTC, authorised by `CRON_SECRET`) fires
+  anything overdue and books reminders that have come within the 7-day window.
+- Teams webhook hosts are allow-listed (`*.powerplatform.com`,
+  `*.logic.azure.com`, `*.webhook.office.com`, https only).
+- The navbar **Reminder badge** (`useReminderBadge`) counts open to-dos +
+  reminders with `due <= now` that aren't completed; it polls `/api/reminders`
+  every 60s and updates instantly via in-page events (`src/lib/badgeEvents.ts`).
+
+---
+
 ## 6. Environments & configuration
 
 Same code runs in every environment; behaviour differs only by **environment
@@ -284,6 +371,12 @@ variables** per Vercel environment.
 | `TFS_ENC_KEY` | Runtime | Dedicated AES key for PAT encryption (optional; falls back to `CLERK_SECRET_KEY`). |
 | `OWNER_USER_ID` | Runtime | Owner-only convenience: enables the `AZDO_PAT`/`AZDO_ORG` fallback for TFS. |
 | `AZDO_PAT` / `AZDO_ORG` | Runtime | Owner-only TFS fallback (never used by other users). |
+| `GITHUB_PAT` / `GITHUB_ORG` | Runtime | Owner-only GitHub fallback (optional). |
+| `QSTASH_TOKEN` / `QSTASH_URL` | Runtime | Publish/cancel reminder deliveries (added by the Vercel Upstash QStash integration). |
+| `QSTASH_CURRENT_SIGNING_KEY` / `QSTASH_NEXT_SIGNING_KEY` | Runtime | Verify that `/api/reminder-fire` calls really come from QStash. |
+| `CRON_SECRET` | Runtime | Authorises the daily `/api/cron-reminders` call (Vercel sends it as a Bearer token). |
+| `REMINDER_BASE_URL` | Runtime | Optional override of the public URL QStash calls back. |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | Runtime | Optional; forwarded by QStash if deployment protection is on. |
 
 > Build-time vs runtime is the crucial distinction: only `VITE_*` variables are
 > compiled into the browser bundle; everything else is read by the serverless
@@ -301,12 +394,17 @@ middleware and stores each user's data as **JSON files on disk**:
 data/users/{safeUserId}/state.json
 data/users/{safeUserId}/calendar.json
 data/users/{safeUserId}/tfs.json
+data/users/{safeUserId}/github.json
+data/users/{safeUserId}/reminders.json
+data/users/{safeUserId}/teams.json
 ```
 
 - The user id is decoded from the Clerk JWT `sub` **without signature verification**
   (dev only — real verification happens on Vercel).
-- The TFS routes call the **real Azure DevOps API** with the stored PAT, so the
-  TFS features work fully in local dev.
+- The TFS and GitHub routes call the **real Azure DevOps / GitHub APIs** with the
+  stored PAT, so those features work fully in local dev.
+- There is no QStash locally: a 20-second timer in the dev server fires due
+  reminders and posts them to the configured Teams webhook directly.
 - The `data/` folder is git-ignored, so nothing personal is committed.
 
 This mirrors production's per-user isolation (files instead of KV keys), which is

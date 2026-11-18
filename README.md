@@ -5,9 +5,10 @@
 ### _Get it together — then relax._
 
 Relax is a personal productivity hub that brings your **Azure DevOps work items**,
-**GitHub repos**, **infrastructure links**, **important portals**, a **leave/status
-calendar**, and **rich notes** together into a single, beautiful dashboard —
-private to you, synced across your devices.
+**GitHub repos and pull requests**, **infrastructure links**, **important portals**,
+a **leave/status calendar**, **to-dos and Teams reminders**, and **rich notes**
+together into a single, beautiful dashboard — private to you, synced across your
+devices.
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
@@ -24,10 +25,12 @@ private to you, synced across your devices.
 | | Feature | Description |
 |---|---|---|
 | 📋 | **TFS / Azure DevOps** | See the work items **assigned to you** automatically, scoped to your team's area — grouped by iteration (current on top) with live **status** badges. Filter by **Feature / Story / Bug** and by iteration, or pin any item by ID. |
-| 🐙 | **GitHub** | Organise your repositories into drag‑and‑drop columns and collapsible groups. |
+| 🐙 | **GitHub** | Organise your repositories into drag‑and‑drop columns and collapsible groups. Open **My Open PRs** to see every open and draft pull request you've authored, with review status and age — stale ones are highlighted so nothing is forgotten. |
+| 📊 | **GitHub Contributions** | From the profile menu: your contribution calendar, pull‑request stats per repo and language breakdown — including private work. |
 | ☁️ | **Infra** | Quick access to your cloud consoles, CI/CD and environment links. |
 | 🔗 | **Important Portals** | One click to the sites you open every day (mail, HR, learning…). |
 | 🗓️ | **Calendar** | Mark days by category (leave, WFH, sick…), see per‑category summaries, and back up/restore your calendar. |
+| ⏰ | **Reminder** | A **To‑Do** list (tick to strike through; completed items clear after 24 hours) and **Reminders** delivered to **Microsoft Teams** at the date and time you choose — with snooze and daily / weekday / weekly / monthly repeats. A badge on the tab counts open to‑dos and overdue reminders. |
 | 📝 | **Notes** | A rich‑text notebook with sections and pages — bold/italic/underline, colours, sizes, and pasted images. |
 | 🌗 | **Light & Dark themes** | A modern light theme and a calm dark theme — your choice follows you across devices. |
 | 🔄 | **Everything syncs** | Your data is saved to your private account and available on any browser or device you sign in from. |
@@ -49,6 +52,13 @@ Want to try TFS? In the **TFS** tab, open *Azure DevOps connection* and add your
 **area path**. Your assigned items appear instantly. Your token is stored
 **encrypted** and only used for your own lookups.
 
+Want your pull requests? Open the profile menu → *GitHub Contributions* and add a
+GitHub **Personal Access Token** (and optionally your organization). This powers
+both the contributions page and **My Open PRs**.
+
+Want reminders in Teams? In **Reminder → Reminders**, paste a Teams **Workflows
+webhook URL** and click *Connect* — then use *Send test* to check it arrives.
+
 ---
 
 ## 🧰 Built with
@@ -57,7 +67,10 @@ Want to try TFS? In the **TFS** tab, open *Azure DevOps connection* and add your
 - **Clerk** — secure, passwordless authentication.
 - **Vercel** — global hosting and serverless functions.
 - **Upstash Redis** — your data, isolated per user.
+- **Upstash QStash** — schedules reminder delivery at the exact time.
 - **Azure DevOps REST API** — live work‑item data.
+- **GitHub GraphQL API** — contributions and pull requests.
+- **Microsoft Teams Workflows** — reminder messages.
 
 ---
 
@@ -67,8 +80,8 @@ Want to try TFS? In the **TFS** tab, open *Azure DevOps connection* and add your
 - Everything you add is saved to **your** private space in the cloud and cached
   locally so it loads instantly.
 - Sign in on another device and your dashboard is exactly as you left it.
-- Your Azure DevOps token is **encrypted** before it's stored, and is never shown
-  back to the browser.
+- Your Azure DevOps and GitHub tokens and your Teams webhook are **encrypted**
+  before they're stored, and are never shown back to the browser.
 
 ---
 
@@ -89,7 +102,7 @@ expected**, and **what happened** (plus your browser) helps us fix it faster.
 
 - Your data is **isolated per user** — no one else can see your dashboard.
 - Access is **invite‑only**.
-- Sensitive credentials (like your Azure DevOps token) are **encrypted at rest**.
+- Sensitive credentials (Azure DevOps and GitHub tokens, Teams webhook) are **encrypted at rest**.
 - The app only requests the minimum access it needs to show your own work items.
 
 ---
