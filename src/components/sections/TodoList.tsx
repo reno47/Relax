@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { emitTodosChanged } from '../../lib/badgeEvents'
 
 interface Todo {
   id: string
@@ -18,6 +19,10 @@ function prune(list: Todo[], now: number): Todo[] {
 export function TodoList() {
   const [todos, setTodos] = useLocalStorage<Todo[]>('dashboard.todos', [])
   const [text, setText] = useState('')
+
+  useEffect(() => {
+    emitTodosChanged(todos)
+  }, [todos])
 
   useEffect(() => {
     const run = () =>

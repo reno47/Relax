@@ -5,6 +5,7 @@ import { hydrate, schedulePush, subscribe } from '../../lib/syncStore'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ItemEditForm } from './ItemEditForm'
 import { Hero } from './Shared'
+import { MyOpenPrs } from '../profile/MyOpenPrs'
 
 const SECTIONS_KEY = 'dashboard.github.sections'
 
@@ -283,6 +284,11 @@ export default function GitHub() {
         title={<>GitHub</>}
         subtitle="Quick access to your repositories."
       />
+
+      <div className="group">
+        <h2 className="group-title">My Open Pull Requests</h2>
+        <MyOpenPrs />
+      </div>
 
       <div className="group">
         <div className="gh-group-head">
