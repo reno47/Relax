@@ -5,7 +5,6 @@ import { hydrate, schedulePush, subscribe } from '../../lib/syncStore'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ItemEditForm } from './ItemEditForm'
 import { Hero } from './Shared'
-import { MyOpenPrs } from '../profile/MyOpenPrs'
 
 const SECTIONS_KEY = 'dashboard.github.sections'
 
@@ -116,7 +115,11 @@ function buildInitial(): Columns {
   return normalize(wrapFlat(buildLegacyFlat()))
 }
 
-export default function GitHub() {
+interface GitHubProps {
+  onOpenMyPrs: () => void
+}
+
+export default function GitHub({ onOpenMyPrs }: Readonly<GitHubProps>) {
   const [columns, setColumns] = useState<Columns>(buildInitial)
   const [dragging, setDragging] = useState<Pos | null>(null)
   const [hint, setHint] = useState<Pos | null>(null)
@@ -286,11 +289,6 @@ export default function GitHub() {
       />
 
       <div className="group">
-        <h2 className="group-title">My Open Pull Requests</h2>
-        <MyOpenPrs />
-      </div>
-
-      <div className="group">
         <div className="gh-group-head">
           <h2 className="group-title">Repository Links</h2>
           {addingSection ? (
@@ -340,6 +338,9 @@ export default function GitHub() {
               + Add section
             </button>
           )}
+          <button type="button" className="gh-my-prs-btn" onClick={onOpenMyPrs}>
+            My Open PRs
+          </button>
         </div>
         <div className="github-columns">
           {columns.map((col, ci) => (

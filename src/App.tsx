@@ -9,6 +9,7 @@ import CalendarView from './components/sections/Calendar'
 import Notes from './components/sections/Notes'
 import Reminder from './components/sections/Reminder'
 import { GithubContributions } from './components/profile/GithubContributions'
+import { MyPrsPage } from './components/profile/MyPrsPage'
 import { SampleBanner } from './components/SampleBanner'
 import { setAuthTokenGetter } from './lib/syncStore'
 
@@ -24,10 +25,11 @@ export default function App() {
     return saved ?? 'tfs'
   })
 
-  const [profilePage, setProfilePage] = useState(false)
+  const [page, setPage] = useState<'contributions' | 'prs' | null>(null)
 
   function changeSection(id: SectionId) {
     setActive(id)
+    setPage(null)
     localStorage.setItem(SECTION_KEY, id)
   }
 
@@ -43,16 +45,16 @@ export default function App() {
           <Navbar
             active={active}
             onChange={changeSection}
-            onOpenGithubContributions={() => setProfilePage(true)}
+            onOpenGithubContributions={() => setPage('contributions')}
           />
           <SampleBanner />
           <main>
-            {profilePage ? (
-              <GithubContributions onBack={() => setProfilePage(false)} />
-            ) : (
+            {page === 'contributions' && <GithubContributions onBack={() => setPage(null)} />}
+            {page === 'prs' && <MyPrsPage onBack={() => setPage(null)} />}
+            {page === null && (
               <>
                 {active === 'tfs' && <TFS />}
-                {active === 'github' && <GitHub />}
+                {active === 'github' && <GitHub onOpenMyPrs={() => setPage('prs')} />}
                 {active === 'infra' && <Infra />}
                 {active === 'portals' && <Portals />}
                 {active === 'calendar' && <CalendarView />}
