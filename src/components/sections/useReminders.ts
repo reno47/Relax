@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import type { Reminder, ReminderInput } from '../../../api/_remindercore'
+import { emitRemindersChanged } from '../../lib/badgeEvents'
 
 export type ClientReminder = Omit<Reminder, 'msgId'>
 
@@ -38,6 +39,7 @@ export function useReminders() {
           return false
         }
         setReminders(data.reminders ?? [])
+        emitRemindersChanged(data.reminders ?? [])
         setTeamsConfigured(Boolean(data.teamsConfigured))
         setError(null)
         return true
