@@ -17,6 +17,7 @@ import {
   publicReminder,
   type Reminder,
 } from './api/_remindercore'
+import { fetchMyOpenPrs } from './api/_myprscore'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const USERS_DIR = path.resolve(__dirname, 'data', 'users')
@@ -469,6 +470,28 @@ function githubContributionsApiPlugin(env: Record<string, string>): Plugin {
   return { name: 'github-contributions-api', configureServer: attach, configurePreviewServer: attach }
 }
 
+function githubPrsApiPlugin(env: Record<string, string>): Plugin {
+  const attach = (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use('/api/github-prs', async (req, res) => {
+      const send = (code: number, obj: unknown) => {
+        res.statusCode = code
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify(obj))
+      }
+      const userId = devUserId(req)
+      if (!userId) return send(401, { error: 'Unauthorized' })
+      const creds = resolveDevGithub(env, userId)
+      if (!creds) return send(501, { error: 'Add your GitHub token to see your pull requests.' })
+      try {
+        send(200, await fetchMyOpenPrs((query, variables) => githubGraphQL(creds.pat, query, variables), creds.org))
+      } catch (e) {
+        send(502, { error: e instanceof Error ? e.message : 'Could not reach GitHub.' })
+      }
+    })
+  }
+  return { name: 'github-prs-api', configureServer: attach, configurePreviewServer: attach }
+}
+
 type DevReq = IncomingMessage
 type DevRes = ServerResponse
 
@@ -612,6 +635,7 @@ export default defineConfig(({ mode }) => {
       tfsAssignedApiPlugin(env),
       githubSettingsApiPlugin(),
       githubContributionsApiPlugin(env),
+      githubPrsApiPlugin(env),
       remindersApiPlugin(),
     ],
   }

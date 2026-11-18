@@ -4,6 +4,7 @@ import { GithubSettings } from './GithubSettings'
 import { ContributionFilters } from './ContributionFilters'
 import { ContributionHeatmap } from './ContributionHeatmap'
 import { PrStats } from './PrStats'
+import { MyOpenPrs } from './MyOpenPrs'
 import { LanguagePie } from './LanguagePie'
 import { useGithubContributions } from './useGithubContributions'
 import { defaultMonthRange, rangeValidationError } from './range'
@@ -43,6 +44,11 @@ export function GithubContributions({ onBack }: Readonly<GithubContributionsProp
 
       {status.configured && (
         <>
+          <section className="gh-card">
+            <h2 className="gh-card-title">My open pull requests</h2>
+            <MyOpenPrs key={status.login ?? ''} />
+          </section>
+
           <ContributionFilters range={range} onChange={setRange} onRefresh={refresh} loading={loading} error={rangeError} />
 
           {error && <div className="gh-error">{error}</div>}

@@ -7,6 +7,7 @@ import calendarIcon from '../assets/icons/calendar.svg'
 import notesIcon from '../assets/icons/notes.svg'
 import reminderIcon from '../assets/icons/reminder.svg'
 import { UserMenu } from './UserMenu'
+import { useReminderBadge } from '../hooks/useReminderBadge'
 
 export type SectionId = 'tfs' | 'github' | 'infra' | 'portals' | 'calendar' | 'reminder' | 'notes'
 
@@ -34,6 +35,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ active, onChange, onOpenGithubContributions }: Readonly<NavbarProps>) {
+  const reminderCount = useReminderBadge()
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -52,6 +54,11 @@ export default function Navbar({ active, onChange, onOpenGithubContributions }: 
                 <img src={item.icon} alt="" className="nav-icon-img" aria-hidden="true" />
               </span>
               <span className="nav-label">{item.label}</span>
+              {item.id === 'reminder' && reminderCount > 0 && (
+                <span className="nav-badge" title="Open to-dos and overdue reminders">
+                  {reminderCount > 99 ? '99+' : reminderCount}
+                </span>
+              )}
             </button>
           </li>
         ))}

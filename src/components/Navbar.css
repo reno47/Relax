@@ -87,6 +87,19 @@
   display: block;
 }
 
+.nav-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--danger-strong);
+  color: var(--danger-text-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
 @media (max-width: 720px) {
   .navbar {
     flex-direction: column;
