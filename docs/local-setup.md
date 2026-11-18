@@ -20,6 +20,9 @@ changes.
   development instance. Auth cannot run without these.
 - *(Optional)* **Azure DevOps** Personal Access Token (PAT) with **Work Items
   (Read)** scope — only needed to exercise the TFS features.
+- *(Optional)* **GitHub** PAT (classic `repo` + `read:org`, or a fine-grained
+  token with read access) — for GitHub Contributions and My Open PRs.
+- *(Optional)* a **Microsoft Teams Workflows** webhook — to receive reminders.
 - You do **not** need Upstash or Vercel for local development — the dev server
   stores data as local JSON files.
 
@@ -61,6 +64,8 @@ Optional (only for TFS features via the owner fallback path):
 OWNER_USER_ID=user_xxx      # your Clerk user id (Clerk Dashboard → Users)
 AZDO_PAT=...                # Azure DevOps PAT, Work Items (Read)
 # AZDO_ORG=your-org
+# GITHUB_PAT=...            # owner-only GitHub fallback
+# GITHUB_ORG=your-org
 # TFS_ENC_KEY=              # optional; only used by the cloud API
 ```
 
@@ -107,6 +112,9 @@ dev middleware and stores each user's data as JSON files:
 data/users/{yourClerkUserId}/state.json      # dashboard state
 data/users/{yourClerkUserId}/calendar.json   # calendar
 data/users/{yourClerkUserId}/tfs.json        # TFS org/area/PAT
+data/users/{yourClerkUserId}/github.json     # GitHub PAT/org/login
+data/users/{yourClerkUserId}/reminders.json  # reminders
+data/users/{yourClerkUserId}/teams.json      # Teams webhook URL
 ```
 
 - Your data persists across restarts because it's on disk.
@@ -114,8 +122,16 @@ data/users/{yourClerkUserId}/tfs.json        # TFS org/area/PAT
 - The whole `data/` folder is git-ignored.
 - To reset yourself to a "new user", delete your folder under `data/users/`.
 
-The TFS endpoints call the **real Azure DevOps API** with your stored PAT, so TFS
-features work fully offline from Vercel.
+The TFS and GitHub endpoints call the **real Azure DevOps / GitHub APIs** with your
+stored PAT, so those features work fully offline from Vercel. Locally the PATs and
+webhook are stored **unencrypted** in these files (git-ignored).
+
+There is no QStash locally — the dev server checks every **20 seconds** for due
+reminders and posts them straight to your Teams webhook.
+
+> **Corporate TLS proxy?** If GitHub/Teams calls fail with certificate errors,
+> start the dev server with `NODE_EXTRA_CA_CERTS` pointing at a PEM bundle that
+> includes your proxy's root CA.
 
 ---
 
@@ -127,6 +143,12 @@ features work fully offline from Vercel.
 - **TFS** — open the TFS tab → *Azure DevOps connection* → enter **Organization**,
   **PAT**, and **Area path** (all required), e.g. `Healthcare IT\CVI Reporting`.
   Your assigned Feature/Story/Bug items appear, grouped by iteration, with filters.
+- **GitHub Contributions** — user menu → *GitHub Contributions* → add your GitHub
+  PAT (+ optional org). Shows calendar, PR stats and languages.
+- **My Open PRs** — GitHub tab → *My Open PRs* button (needs the GitHub PAT).
+- **Reminder** — To-Do works immediately. For Reminders, paste a Teams Workflows
+  webhook in *Reminder → Reminders*, click *Send test*, then add a reminder a
+  minute ahead. The navbar badge shows open to-dos + overdue reminders.
 
 Quick API check from the browser console (after signing in):
 
@@ -189,6 +211,8 @@ to `staging` or `main`.
 | "invalid publishableKey" | The key value is wrong/typo'd; re-copy from Clerk. |
 | Can't sign in | Ensure your Clerk **dev** instance allows sign-ups (for testing). |
 | TFS shows nothing | Check org spelling, that the **Area path** is set, and that the PAT has *Work Items (Read)*. |
+| GitHub shows "Unauthorized" | Token expired or missing scopes; for an org with SSO, authorize the token for that org. |
+| Reminder never posts to Teams | Use *Send test* first; check the webhook URL host is a Teams/Power Automate host. |
 | Changed `.env` but nothing happened | Restart `npm run dev` (env + Vite config are read at startup). |
 | Want a clean "new user" state | Delete your folder under `data/users/`. |
 
