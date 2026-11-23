@@ -5,6 +5,8 @@ import { hydrate, schedulePush, subscribe } from '../../lib/syncStore'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ItemEditForm } from './ItemEditForm'
 import { Hero } from './Shared'
+import { LinkShareControls } from './LinkShareControls'
+import type { ShareSection } from './linkShare'
 
 const SECTIONS_KEY = 'dashboard.github.sections'
 
@@ -103,6 +105,21 @@ function normalize(cols: Columns): Columns {
   )
   while (out.length < githubSectionColumns.length) out.push([])
   return out
+}
+
+function toShare(cols: Columns): ShareSection[] {
+  return cols.flatMap((col, ci) =>
+    col.map((s) => ({ title: s.title, items: s.items, column: ci, collapsed: Boolean(s.collapsed) })),
+  )
+}
+
+function fromShare(list: ShareSection[]): Columns {
+  const cols: Columns = githubSectionColumns.map(() => [])
+  list.forEach((s, i) => {
+    const ci = Math.min(s.column ?? i % cols.length, cols.length - 1)
+    cols[ci].push({ id: newId(), title: s.title, collapsed: Boolean(s.collapsed), items: s.items.map((it) => ({ ...it })) })
+  })
+  return cols
 }
 
 function buildInitial(): Columns {
@@ -338,6 +355,12 @@ export default function GitHub({ onOpenMyPrs }: Readonly<GitHubProps>) {
               + Add section
             </button>
           )}
+          <LinkShareControls
+            kind="github-links"
+            label="GitHub links"
+            sections={toShare(columns)}
+            onImport={(list) => setColumns(fromShare(list))}
+          />
           <button type="button" className="gh-my-prs-btn" onClick={onOpenMyPrs}>
             My Open PRs
           </button>

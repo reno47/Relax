@@ -4,6 +4,7 @@ import infraIcon from '../../assets/icons/infra.svg'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { AddItemForm } from './AddItemForm'
 import { Hero, RemovableCard } from './Shared'
+import { LinkShareControls } from './LinkShareControls'
 
 interface Section {
   id: string
@@ -68,6 +69,23 @@ export default function Infra() {
         title={<>Infra</>}
         subtitle="AWS access, Argo CD and deployment environments. Add your own sections and links."
       />
+
+      <div className="ls-bar">
+        <LinkShareControls
+          kind="infra-links"
+          label="Infra links"
+          sections={sections.map((s) => ({ title: s.title, items: s.items }))}
+          onImport={(list) =>
+            setSections(
+              list.map((s, i) => ({
+                id: `sec-${Date.now().toString(36)}-${i}`,
+                title: s.title,
+                items: s.items.map((it) => ({ ...it })),
+              })),
+            )
+          }
+        />
+      </div>
 
       {sections.map((sec) => (
         <div className="group" key={sec.id}>
